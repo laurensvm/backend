@@ -1,4 +1,4 @@
-from json import JSONEncoder
+from datetime import datetime
 
 class Transaction():
 
@@ -17,8 +17,8 @@ class Transaction():
         self.id = id,
         self.rekeningnummer = rekeningnummer
         self.muntsoort = muntsoort
-        self.transactiedatum = transactiedatum
-        self.rentedatum = rentedatum
+        self.transactiedatum = datetime.strptime(str(transactiedatum), '%Y%m%d')
+        self.rentedatum = datetime.strptime(str(rentedatum), '%Y%m%d')
         self.beginsaldo = beginsaldo
         self.eindsaldo = eindsaldo
         self.transactiebedrag = transactiebedrag
@@ -34,12 +34,12 @@ class Transaction():
             'beginsaldo': self.beginsaldo,
             'eindsaldo': self.eindsaldo,
             'transactiebedrag': self.transactiebedrag,
-            # 'receiver_rekeningnummer': self.receiver_rekeningnummer,
-            # 'receiver_bic': self.receiver_bic,
-            # 'receiver_naam': self.receiver_naam,
+            'receiver_rekeningnummer': self.receiver_rekeningnummer,
+            'receiver_bic': self.receiver_bic,
+            'receiver_naam': self.receiver_naam,
             'afschrijving': self.afschrijving,
-            # 'kenmerk': self.kenmerk,
-            # 'omschrijving': self.omschrijving,
+            'kenmerk': self.kenmerk,
+            'omschrijving': self.omschrijving,
         }
     
     @property
@@ -49,31 +49,37 @@ class Transaction():
     @property
     def receiver_rekeningnummer(self):
         try:
-            return self.total_omschrijving.split("IBAN: ")[1].split(" BIC")[0]
+            return self.total_omschrijving.split("IBAN: ")[1].split(" BIC")[0].split("  ")[0]
         except IndexError:
             return None 
 
     @property
     def receiver_bic(self):
         try:
-            return self.total_omschrijving.split("BIC: ")[1].split(" Naam")[0]
+            return self.total_omschrijving.split("BIC: ")[1].split(" Naam")[0].split("  ")[0]
         except IndexError:
             return None 
     
     @property
     def receiver_naam(self):
         try:
-            return self.total_omschrijving.split("Naam: ")[1].split(" Omschrijving")[0]
+            return self.total_omschrijving.split("Naam: ")[1].split(" Omschrijving")[0].split("  ")[0]
         except IndexError:
             return None 
 
     @property
     def omschrijving(self):
-        return self.total_omschrijving.split("Omschrijving:")[1].split(" Kenmerk")[0]
+        try:
+            return self.total_omschrijving.split("Omschrijving:")[1].split(" Kenmerk")[0]
+        except IndexError:
+            return None
 
     @property
     def kenmerk(self):
-        return self.total_omschrijving.split("Kenmerk:")[1]
+        try:
+            return self.total_omschrijving.split("Kenmerk:")[1]
+        except IndexError:
+            return None
 
     def __str__(self):
         return str(self.transactiebedrag)

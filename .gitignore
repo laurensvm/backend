@@ -1,3 +1,6 @@
 *.pyc
 /static
 /env
+.DS_Store
+.vscode/
+app.egg-info/
