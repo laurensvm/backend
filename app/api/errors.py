@@ -20,6 +20,10 @@ def forbidden(message):
     response.status_code = 403
     return response
 
+def already_exists(message):
+    response = jsonify({'error': 'already_exists', 'message': message })
+    response.status_code = 409
+    return response
 
 @api.errorhandler(ValidationError)
 def validation_error(e):
