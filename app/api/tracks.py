@@ -14,12 +14,15 @@ def get_all_tracks():
 @api.route("/tracks/add", methods=["POST"])
 @auth.login_required
 def add_track():
-    print(request.json, "hello")
     track = Track.from_json(request.json)
-    print("after track")
     if Track.query.filter_by(url=track.url).first():
         return already_exists("This url already exists")
     track.user = g.current_user
     db.session.add(track)
     db.session.commit()
     return jsonify(track.to_json(), 201)
+
+@api.route("/")
+@auth.login_required
+def index():
+    return "INDEX"

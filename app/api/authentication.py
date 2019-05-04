@@ -5,9 +5,20 @@ from flask import jsonify, g
 from . import api
 from .errors import unauthorized, forbidden
 from ..models import User
-from ..downloader import download_songs
+
+from .. import db
 
 auth = HTTPBasicAuth()
+
+
+@api.before_app_first_request
+def create_user():
+    # Create superuser
+    user =  User.query.filter_by(email="theexission@gmail.com").first()
+    if not user:
+        u = User(username="Laurens", email="theexission@gmail.com", password="passwd01")
+        db.session.add(u)
+        db.session.commit()
 
 @auth.error_handler
 def auth_error():

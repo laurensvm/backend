@@ -7,6 +7,7 @@ from datetime import datetime
 
 from . import db, login_manager
 
+
 @login_manager.user_loader
 def load_user(user_id):
     print(User.query.get(int(user_id)))
@@ -80,3 +81,4 @@ class Track(db.Model):
         if url is None or url == '':
             raise ValidationError('Track does not have a url')
         return Track(url=url, user_id=g.current_user.id)
+

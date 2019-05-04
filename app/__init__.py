@@ -1,29 +1,39 @@
 from flask import Flask
-from flask_mail import Mail
+# from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from config import app_config
-from config import DevelopmentConfig
+from config import Config
 
 
-mail = Mail()
+# mail = Mail()
 db = SQLAlchemy()
+migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 
-def create_app(config_name):
+def create_app(config_class=Config):
     app = Flask(__name__)
-    # app.config.from_object(app_config[config_name])
-    app.config.from_object('config.DevelopmentConfig')
-    DevelopmentConfig.init_app(app)
-    # app_config[config_name].init_app(app)
+    app.config.from_object(config_class)
 
-    mail.init_app(app)
-    db.init_app(app)
+
+    # mail.init_app(app)
+
+    with app.app_context():
+        db.init_app(app)    
+    
+    @app.before_first_request
+    def initialize_database():
+        db.create_all()
+
+    
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db.session.remove()
+
+    migrate.init_app(app, db)
     login_manager.init_app(app)
 
-    migrate = Migrate(app, db)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
@@ -33,6 +43,7 @@ def create_app(config_name):
 
     from .api import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')
+
 
     return app
 
