@@ -9,3 +9,4 @@ RUN pip3 install -r requirements.txt
 ADD . /app
 
 CMD ["uwsgi", "app.ini"]
+# CMD ["python", "application.py"]

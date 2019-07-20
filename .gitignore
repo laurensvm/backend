@@ -2,6 +2,8 @@
 /static
 /env
 .DS_Store
+/data
+.sqlite
 .vscode/
 app.egg-info/
 /app/static

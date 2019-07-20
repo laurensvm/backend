@@ -3,7 +3,7 @@ import sys
 from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, g
 from . import api
-from .errors import unauthorized, forbidden
+from .statuscodes import unauthorized, forbidden
 from ..models import User
 
 from .. import db
@@ -43,8 +43,11 @@ def verify_password(email_or_token, password):
 @api.before_request
 @auth.login_required
 def before_request():
-    if g.current_user.is_anonymous:
-        return forbidden("Unconfirmed Account")
+    try:
+        if g.current_user.is_anonymous:
+            return forbidden("Unconfirmed Account")
+    except AttributeError as e:
+        print(e)
 
 @api.route('/token/')
 @auth.login_required

@@ -5,6 +5,18 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from config import Config
 
+# Background task
+# move code
+# from .tasks import test, get_test, get_liked_tracks
+import sys
+import os
+import threading
+import atexit
+
+POOL_TIME = 5
+thread = threading.Thread()
+
+
 
 # mail = Mail()
 db = SQLAlchemy()
@@ -34,15 +46,35 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login_manager.init_app(app)
 
-
-    from .main import main as main_blueprint
-    app.register_blueprint(main_blueprint)
-
-    from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint, url_prefix='/auth')
-
     from .api import api as api_blueprint
-    app.register_blueprint(api_blueprint, url_prefix='/api')
+    app.register_blueprint(api_blueprint, url_prefix='/')
+
+
+    # Threading
+    # move code
+
+    # @atexit.register
+    # def interrupt():
+    #     global thread
+    #     print("SHUTTING DOWN THREAD")
+    #     thread.cancel()
+
+    # def background_tasks():
+    #     get_test()
+
+    #     # Set the next thread to happen
+    #     thread = threading.Timer(POOL_TIME, background_tasks, ())
+    #     thread.start()
+
+    # def run_background_tasks():
+    #     # Do initialisation stuff here
+    #     global thread
+    #     # Create your thread
+    #     thread = threading.Timer(POOL_TIME, background_tasks, ())
+    #     thread.start()
+
+    # # Initiate
+    # run_background_tasks()
 
 
     return app

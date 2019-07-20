@@ -1,3 +1,5 @@
+import os
+
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -10,7 +12,6 @@ from . import db, login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
-    print(User.query.get(int(user_id)))
     return User.query.get(int(user_id))
 
 class User(UserMixin, db.Model):
@@ -76,9 +77,59 @@ class Track(db.Model):
 
     @staticmethod
     def from_json(json_post):
-        print(json_post)
         url = json_post.get("url")
         if url is None or url == '':
             raise ValidationError('Track does not have a url')
         return Track(url=url, user_id=g.current_user.id)
+    
+    @staticmethod
+    def exists(url):
+        if Track.query.filter_by(url=url).first():
+            return True
+        return False
 
+
+class Image(db.Model):
+    __tablename__ = "images"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), index=True)
+    directory = db.Column(db.String(256))
+    filepath = db.Column(db.String(256), unique=True, index=True)
+    format = db.Column(db.String(16), default=None, nullable=True)
+    latitude = db.Column(db.Float, default=None, nullable=True)
+    longitude = db.Column(db.Float, default=None, nullable=True)
+    size = db.Column(db.Integer, default=None, nullable=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user = db.relationship(User)
+
+    def to_json(self):
+        json_post = {
+            "id": self.id,
+            "name": self.name,
+            "directory": self.directory,
+            "format": self.format,
+            "size": self.size,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "filepath": self.filepath,
+            "timestamp": self.timestamp,
+            "user_id": self.user_id
+        }
+        return json_post
+    
+    @staticmethod
+    def from_file_and_directory(directory, filename):
+        if directory is None:
+            directory = "/"
+        if filename is None:
+            raise ValidationError("Image does not have a name")
+        image = Image(name=filename, directory=directory, user_id=g.current_user.id)
+        image.filepath = os.path.join(directory, filename)
+        return image
+
+    @staticmethod
+    def exists(directory, filename):
+        if Image.query.filter_by(filepath=os.path.join(directory, filename)).first():
+            return True
+        return False

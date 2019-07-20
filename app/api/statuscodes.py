@@ -11,9 +11,13 @@ def bad_request(message):
 
 def unauthorized(message):
     response = jsonify({'error': 'unauthorized', 'message': message})
-    response.status_code = 401
+    response.status_code = 403
     return response
 
+def not_found(message):
+    response = jsonify({'error': 'not found', 'message': message})
+    response.status_code = 404
+    return response
 
 def forbidden(message):
     response = jsonify({'error': 'forbidden', 'message': message})
@@ -23,6 +27,11 @@ def forbidden(message):
 def already_exists(message):
     response = jsonify({'error': 'already_exists', 'message': message })
     response.status_code = 409
+    return response
+
+def success(message):
+    response = jsonify({'success': 'OK', 'message': message})
+    response.status_code = 200
     return response
 
 @api.errorhandler(ValidationError)
