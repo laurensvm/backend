@@ -7,7 +7,7 @@ from . import api
 from .authentication import auth
 from .statuscodes import bad_request, already_exists, success, not_found
 from ..models import Image
-from ..utilities import process_image, save_image
+from ..utilities import process_image
 from .. import db
 
 @auth.login_required
@@ -38,12 +38,7 @@ def add_image():
         db.session.add(image)
         db.session.commit()
         
-        # find directory and save with image.directory
-        full_filepath = os.path.join(current_app.config["BASEPATH"], image.filepath)
-        if os.path.exists(full_filepath):
-            raise Exception("Cannot save image. The filepath already exists")
-        os.makedirs(os.path.dirname(full_filepath), exist_ok=True)
-        f.save(full_filepath)
+        image.save(f)
 
         return success("Image successfully uploaded")
     else:

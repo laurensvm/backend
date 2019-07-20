@@ -3,7 +3,8 @@
 /env
 .DS_Store
 /data
-.sqlite
+*.sqlite
+app/*.sqlite
 .vscode/
 app.egg-info/
 /app/static
