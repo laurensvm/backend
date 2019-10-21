@@ -1,6 +1,6 @@
 from flask import jsonify
 from app.exceptions import ValidationError
-from . import api
+from . import controllers
 
 
 def bad_request(message):
@@ -34,6 +34,6 @@ def success(message):
     response.status_code = 200
     return response
 
-@api.errorhandler(ValidationError)
+@controllers.errorhandler(ValidationError)
 def validation_error(e):
     return bad_request(e.args[0])

@@ -1,6 +1,6 @@
 *.pyc
 /static
-/env
+/virtualenv
 .DS_Store
 /data
 *.sqlite

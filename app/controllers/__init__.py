@@ -1,9 +1,8 @@
 from flask import Blueprint
 
-api = Blueprint('api', __name__)
+controllers = Blueprint('controllers', __name__)
 
-from . import authentication
-from . import tracks
+from .authentication import authentication
 from . import images
 from . import videos
 from . import filesystem

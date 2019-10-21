@@ -1,17 +1,15 @@
-import sys
-
 from flask_httpauth import HTTPBasicAuth
-from flask import jsonify, g
-from . import api
-from .statuscodes import unauthorized, forbidden
-from ..models import User
+from flask import jsonify, g, request
 
-from .. import db
+from . import authentication
+from ..statuscodes import unauthorized, forbidden, success
+from ...models import User
+from ... import db
 
 auth = HTTPBasicAuth()
 
 
-@api.before_app_first_request
+@authentication.before_app_first_request
 def create_user():
     # Create superuser
     user =  User.query.filter_by(email="theexission@gmail.com").first()
@@ -40,7 +38,7 @@ def verify_password(email_or_token, password):
     return user.verify_password(password)
 
 
-@api.before_request
+@authentication.before_request
 @auth.login_required
 def before_request():
     try:
@@ -49,7 +47,7 @@ def before_request():
     except AttributeError as e:
         print(e)
 
-@api.route('/token/')
+@authentication.route('/token/')
 @auth.login_required
 def get_token():
     if g.current_user.is_anonymous or g.token_used:
@@ -58,3 +56,20 @@ def get_token():
         'token': g.current_user.generate_auth_token(expiration=3600),
         'expiration': 3600
         })
+
+@authentication.route('/users/', methods=["GET"])
+@auth.login_required
+def get_users():
+    users = User.query.all()
+    return jsonify({ 'users': [ user.to_json() for user in users ] })
+
+@authentication.route('/users/create/', methods=["POST"])
+@auth.login_required
+def create_user():
+    username = request.json.get("username")
+    email = request.json.get("email")
+    password = request.json.get("password")
+    u = User(username=username, email=email, password=password)
+    db.session.add(u)
+    db.session.commit()
+    return success("User successfully created")
