@@ -1,8 +1,8 @@
 from flask_httpauth import HTTPBasicAuth
-from flask import jsonify, g, request
+from flask import jsonify, g, request, current_app
 
 from . import authentication
-from ..statuscodes import unauthorized, forbidden, success
+from ..statuscodes import unauthorized, forbidden, success, bad_request
 from ...models import User
 from ... import db
 
@@ -12,9 +12,19 @@ auth = HTTPBasicAuth()
 @authentication.before_app_first_request
 def create_user():
     # Create superuser
-    user =  User.query.filter_by(email="theexission@gmail.com").first()
+
+    # Get the email from the config file
+    email = current_app.config["ADMIN_EMAIL"]
+
+    user =  User.query.filter_by(email=email).first()
     if not user:
-        u = User(username="Laurens", email="theexission@gmail.com", password="passwd01")
+
+        # Get the environment variables from config
+        username = current_app.config["ADMIN_USERNAME"]
+        password = current_app.config["ADMIN_PASSWORD"]
+
+        u = User(username=username, email=email, password=password)
+        u.admin = True
         db.session.add(u)
         db.session.commit()
 
@@ -66,10 +76,15 @@ def get_users():
 @authentication.route('/users/create/', methods=["POST"])
 @auth.login_required
 def create_user():
-    username = request.json.get("username")
-    email = request.json.get("email")
-    password = request.json.get("password")
-    u = User(username=username, email=email, password=password)
-    db.session.add(u)
-    db.session.commit()
-    return success("User successfully created")
+    if g.current_user.admin:
+        username = request.json.get("username")
+        email = request.json.get("email")
+        password = request.json.get("password")
+
+        if not User.exists(username, email):
+            u = User(username=username, email=email, password=password)
+            db.session.add(u)
+            db.session.commit()
+            return success("User successfully created")
+        return bad_request("User with this username or email already exists")
+    return forbidden("You have insufficient rights to perform this operation")

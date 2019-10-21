@@ -1,5 +1,5 @@
 from flask import jsonify
-from app.exceptions import ValidationError
+from ..exceptions import ValidationError
 from . import controllers
 
 
@@ -21,6 +21,11 @@ def not_found(message):
 
 def forbidden(message):
     response = jsonify({'error': 'forbidden', 'message': message})
+    response.status_code = 403
+    return response
+
+def forbidden():
+    response = jsonify({'error': 'forbidden', 'message': 'You have insufficient rights to perform this operation'})
     response.status_code = 403
     return response
 

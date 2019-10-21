@@ -14,7 +14,7 @@ class Config(object):
     #     db=os.environ["DB_DATABASE"]
     # )
 
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///data-dev.sqlite'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(os.path.join(basedir, "app.db"))
     BASEPATH = "data/"
     IMAGE_PATH = "data/ios/photos/"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -25,3 +25,6 @@ class Config(object):
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = [os.environ.get('ADMIN')] or ['theexission@gmail.com']
+    ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'Laurens'
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or 'passwd01'
+    ADMIN_EMAIL = "theexission@gmail.com"

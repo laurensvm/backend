@@ -1,14 +1,14 @@
 import os
 
 from flask import current_app, g
-from app.exceptions import ValidationError
+from ..exceptions import ValidationError
 from datetime import datetime
 
 from .. import db
 from . import User
 
 class Video(db.Model):
-    __tablename__ = "videos"
+    __tablename__ = "video"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), index=True)
     directory = db.Column(db.String(256))
@@ -18,7 +18,7 @@ class Video(db.Model):
     longitude = db.Column(db.Float, default=None, nullable=True)
     size = db.Column(db.Integer, default=None, nullable=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship(User)
 
     def to_json(self):

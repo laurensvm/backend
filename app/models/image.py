@@ -1,16 +1,16 @@
 import os
 
 from flask import current_app, g
-# from app.exceptions import ValidationError
 from datetime import datetime
 
 from .. import db
+from ..exceptions import ValidationError
 from . import User
 
 
 
 class Image(db.Model):
-    __tablename__ = "images"
+    __tablename__ = "image"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), index=True)
     directory = db.Column(db.String(256))
@@ -20,7 +20,7 @@ class Image(db.Model):
     longitude = db.Column(db.Float, default=None, nullable=True)
     size = db.Column(db.Integer, default=None, nullable=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship(User)
 
     def to_json(self):

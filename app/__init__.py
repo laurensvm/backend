@@ -32,5 +32,8 @@ def create_app(config_class=Config):
     from .controllers import authentication as auth
     app.register_blueprint(auth, url_prefix='/auth')
 
+    from .controllers import files
+    app.register_blueprint(files, url_prefix='/files')
+
     return app
 

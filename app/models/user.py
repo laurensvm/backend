@@ -12,16 +12,24 @@ def load_user(user_id):
 
 
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
-    is_admin = db.Column(db.Boolean, default=False)
+    admin = db.Column(db.Boolean, default=False)
     password_hash = db.Column(db.String(128))
+    directory_rights = db.relationship("Directory", secondary="link")
 
     @property
     def password(self):
         raise AttributeError('Password is not a readable attribute')
+
+    def set_is_admin(self, value):
+        if g.current_user.is_admin:
+            self.admin = value
+        else:
+            print("{0} has insufficient rights".format(g.current_user))
+
 
     @password.setter
     def password(self, password):
@@ -40,9 +48,17 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config["SECRET_KEY"])
         try:
             data = s.loads(token)
-        except:
+        except Exception:
             return None
         return User.query.get(data['id'])
+
+    @staticmethod
+    def exists(username, email):
+        if not User.query.filter_by(username=username).first():
+            if not User.query.filter_by(email=email).first():
+                return False
+            return True
+        return True
 
     def __repr__(self):
         return 'User {0}'.format(self.username)
