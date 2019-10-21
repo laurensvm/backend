@@ -59,3 +59,16 @@ def get_directory_rights():
         directory = Directory.query.filter_by(path=path).first()
         return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
     return forbidden()
+
+@files.route('/delete/', methods=["POST"])
+@auth.login_required
+def delete_directory():
+    if g.current_user.admin:
+        path = request.json.get("path")
+
+        d = Directory.query.filter_by(path=path).first()
+        if d:
+            d.remove()
+            return success("Directory with path: {0} successfully deleted".format(path))
+        return bad_request("Directory does not exist")
+    return forbidden()

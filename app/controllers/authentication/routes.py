@@ -87,4 +87,17 @@ def create_user():
             db.session.commit()
             return success("User successfully created")
         return bad_request("User with this username or email already exists")
-    return forbidden("You have insufficient rights to perform this operation")
+    return forbidden()
+
+@authentication.route('/users/delete/', methods=["POST"])
+@auth.login_required
+def delete_user():
+    if g.current_user.admin:
+        username = request.json.get("username")
+
+        u = User.query.filter_by(username=username).first()
+        if u:
+            u.remove()
+            return success("User with username {0} is successfully deleted".format(username))
+        return bad_request("User does not exist")
+    return forbidden()

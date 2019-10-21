@@ -60,6 +60,12 @@ class User(UserMixin, db.Model):
             return True
         return True
 
+    def remove(self):
+        for directory in self.directory_rights:
+            directory.users_with_rights.remove(self)
+        db.session.delete(self)
+        db.session.commit()
+
     def __repr__(self):
         return 'User {0}'.format(self.username)
 

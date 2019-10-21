@@ -34,6 +34,18 @@ class Directory(db.Model):
                 return True
         return False
 
+    def remove(self):
+        for user in self.users_with_rights:
+            user.directory_rights.remove(self)
+
+        # Recursively removes all children
+        # and also removes the user rights
+        for child in self.children:
+            child.remove()
+
+        db.session.delete(self)
+        db.session.commit()
+
     @staticmethod
     def exists(path, name):
         if Directory.query.filter_by(path=path).filter_by(name=name).first():
