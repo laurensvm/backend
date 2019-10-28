@@ -2,7 +2,7 @@ from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, g, request, current_app
 
 from . import authentication
-from ..statuscodes import unauthorized, forbidden, success, bad_request
+from ..statuscodes import unauthorized, success, bad_request
 from ...models import User
 from ... import db
 
@@ -17,6 +17,7 @@ def create_user():
     email = current_app.config["ADMIN_EMAIL"]
 
     user =  User.query.filter_by(email=email).first()
+
     if not user:
 
         # Get the environment variables from config
@@ -27,6 +28,7 @@ def create_user():
         u.admin = True
         db.session.add(u)
         db.session.commit()
+
 
 @auth.error_handler
 def auth_error():
@@ -99,5 +101,20 @@ def delete_user():
         if u:
             u.remove()
             return success("User with username {0} is successfully deleted".format(username))
+        return bad_request("User does not exist")
+    return forbidden()
+
+@authentication.route('/users/update/<int:id>/', methods=["POST"])
+@auth.login_required
+def update_user(id):
+    if g.current_user.admin:
+        u = User.query.filter_by(id=id).first()
+        if u:
+            attr = request.json.get("attribute")
+            value = request.json.get("value")
+            print(list(u.__dict__.keys()))
+            # if attr in u.__dict__.keys()
+
+            return success("User attribute {0} succesfully updates to {1}".format(attr, value))
         return bad_request("User does not exist")
     return forbidden()

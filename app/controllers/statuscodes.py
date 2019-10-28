@@ -19,19 +19,19 @@ def not_found(message):
     response.status_code = 404
     return response
 
-def forbidden(message):
-    response = jsonify({'error': 'forbidden', 'message': message})
-    response.status_code = 403
-    return response
-
-def forbidden():
-    response = jsonify({'error': 'forbidden', 'message': 'You have insufficient rights to perform this operation'})
+def unauthorized():
+    response = jsonify({'error': 'unauthorized', 'message': 'You have insufficient rights to perform this operation'})
     response.status_code = 403
     return response
 
 def already_exists(message):
     response = jsonify({'error': 'already_exists', 'message': message })
     response.status_code = 409
+    return response
+
+def internal_error(message):
+    response = jsonify({'error': 'internal_server_error', 'message': message})
+    response.status_code = 500
     return response
 
 def success(message):

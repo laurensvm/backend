@@ -20,7 +20,6 @@ def create_app(config_class=Config):
     @app.before_first_request
     def initialize_database():
         db.create_all()
-
     
     @app.teardown_appcontext
     def shutdown_session(exception=None):
@@ -34,6 +33,9 @@ def create_app(config_class=Config):
 
     from .controllers import files
     app.register_blueprint(files, url_prefix='/files')
+
+    from .controllers import controllers
+    app.register_blueprint(controllers, url_prefix='')
 
     return app
 

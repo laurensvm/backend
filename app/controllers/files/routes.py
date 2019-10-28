@@ -2,7 +2,7 @@ from flask import jsonify, g, request, current_app
 
 from . import files
 from ..authentication import auth
-from ..statuscodes import unauthorized, forbidden, success, bad_request
+from ..statuscodes import unauthorized, success, bad_request, not_found
 from ... import utils
 from ... import db
 from ...models.directory import Directory
@@ -23,7 +23,22 @@ def create_root_directory():
 @files.route("/", methods=["POST"])
 @auth.login_required
 def get_children():
-    return forbidden("TEMP")
+    name = request.json.get("name")
+    path = request.json.get("path")
+
+    if name:
+        directory = Directory.query.filter_by(name=name).first()
+    elif path:
+        directory = Directory.query.filter_by(path=path).first()
+    else:
+        return bad_request("No valid name or path given. Please use a path to combat ambiguity.")
+
+
+    if directory:
+        if g.current_user in directory.users_with_rights:
+            return jsonify({ "children": [child.name for child in directory.children ] })
+        return unauthorized()
+    return not_found()
 
 @files.route("/create/", methods=["POST"])
 @auth.login_required
@@ -49,7 +64,9 @@ def create_directory():
 
             return bad_request("Directory with path {0} and name {1} already exists"
                                .format(path, name))
-    return forbidden()
+        else:
+            return bad_request("Directory with path does not exist")
+    return unauthorized()
 
 @files.route("/rights/", methods=["POST"])
 @auth.login_required
@@ -58,7 +75,7 @@ def get_directory_rights():
         path = request.json.get("path")
         directory = Directory.query.filter_by(path=path).first()
         return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
-    return forbidden()
+    return unauthorized()
 
 @files.route('/delete/', methods=["POST"])
 @auth.login_required
@@ -71,4 +88,4 @@ def delete_directory():
             d.remove()
             return success("Directory with path: {0} successfully deleted".format(path))
         return bad_request("Directory does not exist")
-    return forbidden()
+    return unauthorized()

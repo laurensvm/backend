@@ -5,8 +5,8 @@ from werkzeug import secure_filename
 
 from . import controllers
 from .authentication import auth
-from .statuscodes import bad_request, already_exists, success, not_found
-from ..models import Image
+from .statuscodes import bad_request, already_exists, success, not_found, internal_error
+from ..models import Image, User
 from .. import db
 
 @auth.login_required
@@ -30,14 +30,18 @@ def add_image():
         # size, format = process_image(f)
         
         image = Image.from_file_and_directory(directory, filename)
-        image.user = g.current_user
+        image.user = User.query.filter_by(id=1).first()
         # image.size = size
-        image.format = format
+        # image.format = format
 
         db.session.add(image)
         db.session.commit()
-        
-        image.save(f)
+
+        try:
+            image.save(f)
+        except Exception as e:
+            return internal_error("Cannot save image because it exists on the filesystem."
+                                  + " Database and Filesystem are not synchronized. CRITICAL!")
 
         return success("Image successfully uploaded")
     else:

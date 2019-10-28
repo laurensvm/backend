@@ -52,7 +52,8 @@ class Image(db.Model):
             directory = "/"
         if filename is None:
             raise ValidationError("Image does not have a name")
-        image = Image(name=filename, directory=directory, user_id=g.current_user.id)
+
+        image = Image(name=filename, directory=directory, user_id=1)
         image.filepath = os.path.join(directory, filename)
         return image
 
