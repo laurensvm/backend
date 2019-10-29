@@ -2,6 +2,7 @@
 /static
 /virtualenv
 .DS_Store
+DS_Store
 /data
 *.sqlite
 app/*.sqlite
