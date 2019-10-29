@@ -4,7 +4,7 @@ from flask import current_app, g
 
 from .. import db
 from ..exceptions import ValidationError
-from .file import File
+from .file import File, Type
 from .base import LocationMixin
 
 
@@ -13,16 +13,25 @@ class Image(LocationMixin, File):
     __tablename__ = "image"
     resolution = db.Column(db.Integer, default=None, nullable=True)
 
+    def __init__(self, **kwargs):
+        super(Image, self).__init__(**kwargs)
+        self.type = Type.image
+
     __mapper_args__ = {
         'polymorphic_identity':'image',
     }
 
-    def to_json(self):
+    def json(self):
         json = super(Image, self).json()
-        json = json.update(super(LocationMixin, self).json())
-        return json.update({
+        json.update(super(LocationMixin, self).json())
+        json.update({
             "resolution": self.resolution
         })
+        return json
+
+    def remove(self):
+        super(Image, self).remove()
+
 
 
 
@@ -44,9 +53,3 @@ class Image(LocationMixin, File):
     #     image = Image(name=filename, directory=directory, user_id=1)
     #     # image.filepath = os.path.join(directory, filename)
     #     return image
-    #
-    # @staticmethod
-    # def exists(directory, filename):
-    #     if Image.query.filter_by(filepath=os.path.join(directory, filename)).first():
-    #         return True
-    #     return False

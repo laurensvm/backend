@@ -1,12 +1,10 @@
 import os
-# from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-# load_dotenv(os.path.join(basedir, '.env'))
-
 
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+
     # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{passwd}@{host}:3306/{db}'.format(
     #     user=os.environ["DB_USERNAME"],
     #     passwd=os.environ["DB_PASSWORD"],

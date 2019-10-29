@@ -12,6 +12,10 @@ class Video(Base):
     # latitude = db.Column(db.Float, default=None, nullable=True)
     # longitude = db.Column(db.Float, default=None, nullable=True)
     # # quality / resolution
+
+    # def __init__(self, **kwargs):
+    #     super(Image, self).__init__(**kwargs)
+    #     self.type = Type.video
     #
     # def to_json(self):
     #     json_post = {

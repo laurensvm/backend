@@ -12,22 +12,11 @@ TOKEN_EXPIRATION = 3600
 @authentication.before_app_first_request
 def create_user():
     # Create superuser
-
-    # Get the email from the config file
     email = current_app.config["ADMIN_EMAIL"]
-
     user =  User.query.filter_by(email=email).first()
 
     if not user:
-
-        # Get the environment variables from config
-        username = current_app.config["ADMIN_USERNAME"]
-        password = current_app.config["ADMIN_PASSWORD"]
-
-        u = User(username=username, email=email, password=password)
-        u.admin = True
-        db.session.add(u)
-        db.session.commit()
+        User.create_superuser()
 
 
 @auth.error_handler
@@ -73,23 +62,25 @@ def get_token():
 @auth.login_required
 def get_users():
     users = User.query.all()
-    return jsonify({ 'users': [ user.to_json() for user in users ] })
+    return jsonify({ 'users': [ user.json() for user in users ] })
 
 @authentication.route('/users/create/', methods=["POST"])
 @auth.login_required
 def create_user():
-    if g.current_user.admin:
-        username = request.json.get("username")
-        email = request.json.get("email")
-        password = request.json.get("password")
+    if not g.current_user.admin:
+        return unauthorized()
 
-        if not User.exists(username, email):
-            u = User(username=username, email=email, password=password)
-            db.session.add(u)
-            db.session.commit()
-            return success("User successfully created")
+    username = request.json.get("username")
+    email = request.json.get("email")
+    password = request.json.get("password")
+
+    if not User.unique(username, email):
         return bad_request("User with this username or email already exists")
-    return unauthorized()
+
+    u = User(username=username, email=email, password=password)
+    u.save()
+
+    return success("User successfully created")
 
 @authentication.route('/users/delete/', methods=["POST"])
 @auth.login_required
@@ -104,17 +95,17 @@ def delete_user():
         return bad_request("User does not exist")
     return unauthorized()
 
-@authentication.route('/users/update/<int:id>/', methods=["POST"])
-@auth.login_required
-def update_user(id):
-    if g.current_user.admin:
-        u = User.query.filter_by(id=id).first()
-        if u:
-            attr = request.json.get("attribute")
-            value = request.json.get("value")
-            print(list(u.__dict__.keys()))
-            # FIX
-
-            return success("User attribute {0} succesfully updates to {1}".format(attr, value))
-        return bad_request("User does not exist")
-    return unauthorized()
+# @authentication.route('/users/update/<int:id>/', methods=["POST"])
+# @auth.login_required
+# def update_user(id):
+#     if g.current_user.admin:
+#         u = User.query.filter_by(id=id).first()
+#         if u:
+#             attr = request.json.get("attribute")
+#             value = request.json.get("value")
+#             print(list(u.__dict__.keys()))
+#             # FIX
+#
+#             return success("User attribute {0} succesfully updates to {1}".format(attr, value))
+#         return bad_request("User does not exist")
+#     return unauthorized()
