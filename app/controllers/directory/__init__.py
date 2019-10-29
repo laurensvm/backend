@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-files = Blueprint('files', __name__)
+directory = Blueprint('directory', __name__)
 
 from . import routes
