@@ -26,3 +26,4 @@ class Config(object):
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'Laurens'
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or 'passwd01'
     ADMIN_EMAIL = "theexission@gmail.com"
+    TOKEN_EXPIRATION = 3600

@@ -4,10 +4,8 @@ from flask import jsonify, g, request, current_app
 from . import authentication
 from ..statuscodes import unauthorized, success, bad_request
 from ...models import User
-from ... import db
 
 auth = HTTPBasicAuth()
-TOKEN_EXPIRATION = 3600
 
 @authentication.before_app_first_request
 def create_user():
@@ -51,11 +49,13 @@ def before_request():
 @authentication.route('/token/')
 @auth.login_required
 def get_token():
+    expiration = int(current_app["TOKEN_EXPIRATION"]) or 3600
+
     if g.current_user.is_anonymous or g.token_used:
         return unauthorized('Invalid credentials')
     return jsonify({
-        'token': g.current_user.generate_auth_token(expiration=TOKEN_EXPIRATION),
-        'expiration': TOKEN_EXPIRATION
+        'token': g.current_user.generate_auth_token(expiration=expiration),
+        'expiration': expiration
         })
 
 @authentication.route('/users/', methods=["GET"])

@@ -3,21 +3,15 @@ from flask import jsonify, g, request, current_app
 from . import files
 from ..authentication import auth
 from ..statuscodes import unauthorized, success, bad_request, not_found
-from ... import utils
+from ...utils import join
 from ... import db
 from ...models import Directory
-from ...models import User
 
 @files.before_app_first_request
 def create_root_directory():
     root = Directory.query.filter_by(path="/").first()
     if not root:
-        d = Directory(parent_id=None, name="root", path="/")
-        admins = User.query.filter_by(admin=True)
-        d.users_with_rights.extend(admins)
-
-        db.session.add(d)
-        db.session.commit()
+        Directory.create_root()
 
 
 @files.route("/", methods=["POST"])
@@ -26,66 +20,70 @@ def get_children():
     name = request.json.get("name")
     path = request.json.get("path")
 
-    if name:
-        directory = Directory.query.filter_by(name=name).first()
-    elif path:
-        directory = Directory.query.filter_by(path=path).first()
-    else:
+    if not path and not name:
         return bad_request("No valid name or path given. Please use a path to combat ambiguity.")
 
+    d = Directory.find_by_name_and_path(name, path)
+    if not d:
+        return not_found("Directory not found")
 
-    if directory:
-        if g.current_user in directory.users_with_rights:
-            return jsonify({ "children": [child.name for child in directory.children ] })
+    if not g.current_user in d.users_with_rights:
         return unauthorized()
-    return not_found()
+
+    return jsonify({ "children": [child.name for child in d.children ] })
 
 @files.route("/create/", methods=["POST"])
 @auth.login_required
 def create_directory():
-    if g.current_user.admin:
-        name = request.json.get("name")
-        path = request.json.get("path")
+    if not g.current_user.admin:
+        return unauthorized()
 
-        parent = Directory.query.filter_by(path=path).first()
-        if parent:
-            if not parent.has_child_with(name):
-                # Create directory
-                d = Directory(
-                    parent_id=parent.id,
-                    name=name,
-                    path=utils.join(path, name))
-                d.users_with_rights.append(g.current_user)
 
-                db.session.add(d)
-                db.session.commit()
+    name = request.json.get("name")
+    path = request.json.get("path")
 
-                return success("Directory successfully created")
+    parent = Directory.query.filter_by(path=path).first()
 
-            return bad_request("Directory with path {0} and name {1} already exists"
-                               .format(path, name))
-        else:
-            return bad_request("Directory with path does not exist")
-    return unauthorized()
+    if not parent:
+        return bad_request("Directory with path does not exist")
+
+    if parent.has_child_with_name(name):
+        return bad_request("Directory with path {0} and name {1} already exists"
+                           .format(path, name))
+    # Create directory
+    d = Directory(
+        parent_id=parent.id,
+        name=name,
+        path=join(path, name))
+    d.users_with_rights.append(g.current_user)
+
+    d.save()
+
+    return success("Directory successfully created")
+
 
 @files.route("/rights/", methods=["POST"])
 @auth.login_required
 def get_directory_rights():
-    if g.current_user.admin:
-        path = request.json.get("path")
-        directory = Directory.query.filter_by(path=path).first()
-        return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
-    return unauthorized()
+    if not g.current_user.admin:
+        return unauthorized()
+
+    path = request.json.get("path")
+    directory = Directory.query.filter_by(path=path).first()
+    return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
+
 
 @files.route('/delete/', methods=["POST"])
 @auth.login_required
 def delete_directory():
     if g.current_user.admin:
-        path = request.json.get("path")
+        return unauthorized()
 
-        d = Directory.query.filter_by(path=path).first()
-        if d:
-            d.remove()
-            return success("Directory with path: {0} successfully deleted".format(path))
+    path = request.json.get("path")
+
+    d = Directory.query.filter_by(path=path).first()
+    if not d:
         return bad_request("Directory does not exist")
-    return unauthorized()
+
+    d.remove()
+    return success("Directory with path: {0} successfully deleted".format(path))
