@@ -1,18 +1,12 @@
-# from app.exceptions import ValidationError
-from datetime import datetime
-
 from .. import db
+from .base import Base
 
-
-class Directory(db.Model):
-    __tablename__ = "directory"
-    id = db.Column(db.Integer, primary_key=True)
+class Directory(Base):
     parent_id = db.Column(db.Integer, db.ForeignKey('directory.id'), nullable=True)
-    children = db.relationship("Directory", backref=db.backref('parent', remote_side=[id]))
+    children = db.relationship("Directory", backref=db.backref('parent', remote_side='Directory.id'))
     name = db.Column(db.String(256), index=True)
     path = db.Column(db.String(256), unique=True, index=True)
     size = db.Column(db.Integer, default=0, nullable=True)
-    creation_date = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     users_with_rights = db.relationship("User", secondary="link")
 
     def to_json(self):
@@ -22,7 +16,7 @@ class Directory(db.Model):
             "format": self.format,
             "size": self.size,
             "path": self.path,
-            "creation_date": self.creation_date,
+            "timestamp": self.timestamp,
             "parent_id": self.parent_id,
             "children": [ child.id for child in self.children ]
         }

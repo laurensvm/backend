@@ -5,8 +5,8 @@ from ..authentication import auth
 from ..statuscodes import unauthorized, success, bad_request, not_found
 from ... import utils
 from ... import db
-from ...models.directory import Directory
-from ...models.user import User
+from ...models import Directory
+from ...models import User
 
 @files.before_app_first_request
 def create_root_directory():

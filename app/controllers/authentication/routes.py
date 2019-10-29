@@ -7,7 +7,7 @@ from ...models import User
 from ... import db
 
 auth = HTTPBasicAuth()
-
+TOKEN_EXPIRATION = 3600
 
 @authentication.before_app_first_request
 def create_user():
@@ -55,7 +55,7 @@ def verify_password(email_or_token, password):
 def before_request():
     try:
         if g.current_user.is_anonymous:
-            return forbidden("Unconfirmed Account")
+            return unauthorized("Unconfirmed Account")
     except AttributeError as e:
         print(e)
 
@@ -65,8 +65,8 @@ def get_token():
     if g.current_user.is_anonymous or g.token_used:
         return unauthorized('Invalid credentials')
     return jsonify({
-        'token': g.current_user.generate_auth_token(expiration=3600),
-        'expiration': 3600
+        'token': g.current_user.generate_auth_token(expiration=TOKEN_EXPIRATION),
+        'expiration': TOKEN_EXPIRATION
         })
 
 @authentication.route('/users/', methods=["GET"])
@@ -89,7 +89,7 @@ def create_user():
             db.session.commit()
             return success("User successfully created")
         return bad_request("User with this username or email already exists")
-    return forbidden()
+    return unauthorized()
 
 @authentication.route('/users/delete/', methods=["POST"])
 @auth.login_required
@@ -102,7 +102,7 @@ def delete_user():
             u.remove()
             return success("User with username {0} is successfully deleted".format(username))
         return bad_request("User does not exist")
-    return forbidden()
+    return unauthorized()
 
 @authentication.route('/users/update/<int:id>/', methods=["POST"])
 @auth.login_required
@@ -113,8 +113,8 @@ def update_user(id):
             attr = request.json.get("attribute")
             value = request.json.get("value")
             print(list(u.__dict__.keys()))
-            # if attr in u.__dict__.keys()
+            # FIX
 
             return success("User attribute {0} succesfully updates to {1}".format(attr, value))
         return bad_request("User does not exist")
-    return forbidden()
+    return unauthorized()
