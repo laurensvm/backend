@@ -13,6 +13,7 @@ def load_user(user_id):
 
 
 class User(UserMixin, Base):
+    __tablename__ = "user"
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
     admin = db.Column(db.Boolean, default=False)

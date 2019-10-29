@@ -8,3 +8,30 @@ class Base(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=db.func.now())
 
+    def json(self):
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp,
+            "updates": self.updated
+        }
+
+    def remove(self):
+        db.session.delete(self)
+        db.session.commit()
+
+class Link(db.Model):
+    __tablename__ = "link"
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    directory_id = db.Column(db.Integer, db.ForeignKey("directory.id"), primary_key=True)
+
+class LocationMixin(object):
+    latitude = db.Column(db.Float, default=None, nullable=True)
+    longitude = db.Column(db.Float, default=None, nullable=True)
+
+    def json(self):
+        return {
+            "coordinates": {
+                "latitude": self.latitude,
+                "longitude": self.longitude
+            }
+        }

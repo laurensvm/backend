@@ -2,31 +2,35 @@ from .. import db
 from .base import Base
 
 class Directory(Base):
+    __tablename__ = "directory"
     parent_id = db.Column(db.Integer, db.ForeignKey('directory.id'), nullable=True)
     children = db.relationship("Directory", backref=db.backref('parent', remote_side='Directory.id'))
+    files = db.relationship("File", back_populates="directory")
     name = db.Column(db.String(256), index=True)
     path = db.Column(db.String(256), unique=True, index=True)
-    size = db.Column(db.Integer, default=0, nullable=True)
+    size = db.Column(db.Integer, default=0)
     users_with_rights = db.relationship("User", secondary="link")
 
-    def to_json(self):
-        json_post = {
-            "id": self.id,
+    def json(self):
+        json = super(Directory, self).json()
+        return json.update({
+            "parent": self.parent,
+            "children": [ child.name for child in self.children ],
+            "files": [ file.name for file in self.files ],
             "name": self.name,
-            "format": self.format,
-            "size": self.size,
             "path": self.path,
-            "timestamp": self.timestamp,
-            "parent_id": self.parent_id,
-            "children": [ child.id for child in self.children ]
-        }
-        return json_post
+            "size": self.size,
+            "users_with_rights": [ user.name for user in self.users_with_rights ]
+        })
 
     def has_child_with(self, name):
         for child in self.children:
             if child.name == name:
                 return True
         return False
+
+    def update_size(self, size):
+        self.size += size
 
     def remove(self):
         for user in self.users_with_rights:
@@ -37,8 +41,7 @@ class Directory(Base):
         for child in self.children:
             child.remove()
 
-        db.session.delete(self)
-        db.session.commit()
+        super(Directory, self).remove()
 
     @staticmethod
     def exists(path, name):
