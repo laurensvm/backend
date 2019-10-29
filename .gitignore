@@ -11,3 +11,4 @@ app.egg-info/
 /app/static
 /migrations
 app.db
+.idea
