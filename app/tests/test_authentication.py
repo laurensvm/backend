@@ -14,8 +14,10 @@ class TestAuthentication(TestBase):
         data = self.parse_json(response.data)
         assert data.get("users") is not None
 
-    def test_get_user(self):
-        pass
+    def test_get_user_by_id(self):
+        response = self.app.get("/auth/users/{0}/".format(self.user_dict["id"]), headers=self.get_header())
+        data = self.parse_json(response.data)
+        assert self.user_dict["email"] == data.get("email")
 
     def test_create_user(self):
         pass

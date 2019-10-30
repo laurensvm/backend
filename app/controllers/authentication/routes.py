@@ -2,7 +2,7 @@ from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, g, request, current_app
 
 from . import authentication
-from ..statuscodes import unauthorized, _unauthorized, success, bad_request
+from ..statuscodes import unauthorized, _unauthorized, success, bad_request, not_found
 from ...models import User
 
 auth = HTTPBasicAuth()
@@ -60,13 +60,17 @@ def get_token():
 
 @authentication.route('/users/<int:id>/', methods=["GET", "POST"])
 @auth.login_required
-def get_user_by_id():
+def get_user_by_id(id):
     if request.method == "POST":
-        # Get request.json
-        pass
-    else:
-        # Get request params
-        pass
+        id = request.json.get("id")
+
+    user = User.query.filter_by(id=id).first()
+
+    if not user:
+        return not_found()
+
+    return jsonify(user.json())
+
 
 @authentication.route('/users/', methods=["GET"])
 @auth.login_required
