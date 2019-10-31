@@ -3,6 +3,7 @@ from sqlalchemy import and_
 from werkzeug.utils import secure_filename
 
 from .. import db
+from ..exceptions import IOException
 from ..utils import join, path_exists, remove, move
 from .base import Base
 from .user import User
@@ -68,15 +69,38 @@ class File(Base):
     def secure_filename(name):
         return secure_filename(name)
 
+    def move(self, destination):
+        d = Directory.query.filter_by(path=destination).first()
+
+        if not d:
+            raise IOException(
+                IOException.Type.path_does_not_exist,
+                "Directory with destination path does not exist. Please create the directory first."
+            )
+
+        self.directory.update_size(self.size, increment=False)
+        self.directory.files.remove(self)
+
+        dest_path = join(self.path, self.name)
+        move(self.path, dest_path)
+
+        self.directory = d
+        self.directory_id = d.id
+
+        d.files.append(self)
+
+        pass
+
+
     def save(self, f):
         if not path_exists(self.directory.path):
-            raise Exception("Path does not exist")
+            raise IOException(IOException.Type.path_does_not_exist)
 
         if not self.user in self.directory.users_with_rights:
-            raise Exception("User does not have rights to perform IO operations in this directory")
+            raise IOException(IOException.Type.insufficient_rights)
 
         if path_exists(self.path):
-            raise Exception("Cannot save image. The file path already exists")
+            raise Exception(IOException.Type.path_already_exists)
 
         f.save(self.path)
 
