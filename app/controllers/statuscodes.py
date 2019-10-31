@@ -19,6 +19,11 @@ def not_found(message):
     response.status_code = 404
     return response
 
+def _not_found():
+    response = jsonify({'error': 'not found', 'message': 'Your request did not match any data'})
+    response.status_code = 404
+    return response
+
 def unauthorized():
     response = jsonify({'error': 'unauthorized', 'message': 'You have insufficient rights to perform this operation'})
     response.status_code = 403
