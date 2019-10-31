@@ -13,8 +13,8 @@ def create_root_directory():
         Directory.create_root()
 
 
-@directories.route("/", methods=["GET", "POST"])
 @auth.login_required
+@directories.route("/", methods=["GET", "POST"])
 def get_children():
     if request.method == "POST":
         path = request.json.get("path")
@@ -35,8 +35,9 @@ def get_children():
         directories = Directory.query.all()
         return jsonify({ "directories": [ directory.json() for directory in directories ] })
 
-@directories.route("/create/", methods=["POST"])
+
 @auth.login_required
+@directories.route("/create/", methods=["POST"])
 def create_directory():
     if not g.current_user.admin:
         return unauthorized()
@@ -65,8 +66,8 @@ def create_directory():
     return success("Directory successfully created")
 
 
-@directories.route("/rights/", methods=["POST"])
 @auth.login_required
+@directories.route("/rights/", methods=["POST"])
 def get_directory_rights():
     if not g.current_user.admin:
         return unauthorized()
@@ -76,8 +77,8 @@ def get_directory_rights():
     return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
 
 
-@directories.route('/delete/', methods=["POST"])
 @auth.login_required
+@directories.route('/delete/', methods=["POST"])
 def delete_directory():
     if g.current_user.admin:
         return unauthorized()
