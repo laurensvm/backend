@@ -77,16 +77,13 @@ class Directory(Base):
         d.save()
 
     @staticmethod
-    def find_by_path(path):
+    def get_by_path(path):
         return Directory.query.filter_by(path=path).first()
 
-    @staticmethod
-    def find_by_id(id):
-        return Directory.query.filter_by(id=id).first()
 
     @staticmethod
     def get_parent(path):
-        d = Directory.find_by_path(path)
+        d = Directory.get_by_path(path)
         if d:
             return d.parent
         return None

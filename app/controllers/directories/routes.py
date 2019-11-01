@@ -22,7 +22,7 @@ def get_children():
         if not path:
             return bad_request("No valid path given.")
 
-        d = Directory.find_by_path(path)
+        d = Directory.get_by_path(path)
         if not d:
             return not_found("Directory not found")
 
@@ -44,7 +44,7 @@ def get_directory_id():
     if not path:
         return bad_request("No valid path given.")
 
-    d = Directory.find_by_path(path)
+    d = Directory.get_by_path(path)
 
     return jsonify({ 'id': d.id })
 
@@ -86,7 +86,7 @@ def get_directory_rights():
         return unauthorized()
 
     path = request.json.get("path")
-    directory = Directory.find_by_path(path)
+    directory = Directory.get_by_path(path)
     return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
 
 
@@ -98,7 +98,7 @@ def delete_directory():
 
     path = request.json.get("path")
 
-    d = Directory.find_by_path(path)
+    d = Directory.get_by_path(path)
     if not d:
         return bad_request("Directory does not exist")
 
