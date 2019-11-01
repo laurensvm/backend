@@ -2,7 +2,8 @@ import unittest
 
 from .test_blueprint import TestBase
 
-class TestDirectories(TestBase):
+class TestAuthentication(TestBase):
+
     def test_get_children(self):
         pass
 
