@@ -8,9 +8,12 @@ class IOException(IOError):
 
     def __init__(self, type, message=None):
         if message:
-            super(IOException, self).__init__(message)
+            self.message = message
         else:
-            super(IOException, self).__init__(type.value)
+            self.message = type.value
+
+        super(IOException, self).__init__(self.message)
+
 
     def json(self):
         return dict(error="error", message=self.message)

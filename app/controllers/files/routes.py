@@ -7,8 +7,8 @@ from ...models import File, Directory, Type
 from ...exceptions import IOException
 
 
-@auth.login_required
 @files.route("/", methods=["POST"])
+@auth.login_required
 def get_file_by_path():
     path = request.json.get("path")
 
@@ -22,8 +22,8 @@ def get_file_by_path():
     return jsonify(f.json())
 
 
-@auth.login_required
 @files.route("/files/", methods=["POST"])
+@auth.login_required
 def get_files_in_directory():
     path = request.json.get("path") or request.json.get("directory")
     if not path:
@@ -40,8 +40,8 @@ def get_files_in_directory():
     return jsonify({'files': [ file.json() for file in d.files ]})
 
 
+@files.route("/<int:id>/", methods=["GET"])
 @auth.login_required
-@files.route("/<int:id/", methods=["GET"])
 def get_file_by_id(id):
     f = File.query.filter_by(id=id).first()
 
@@ -54,8 +54,8 @@ def get_file_by_id(id):
     return jsonify(f.json())
 
 
-@auth.login_required
 @files.route("/<string:name>/", methods=["GET"])
+@auth.login_required
 def get_files_with_name(name):
     files = File.query.filter_by(name=name)
 
@@ -67,8 +67,8 @@ def get_files_with_name(name):
     return jsonify({'files': [ f.json() for f in files_with_rights ]})
 
 
-@auth.login_required
 @files.route("/delete/<int:id>/", methods=["GET"])
+@auth.login_required
 def delete_file(id):
     if not g.current_user.admin:
         return unauthorized()
@@ -86,8 +86,9 @@ def delete_file(id):
     return success("File successfully deleted")
 
 ########################### SENDING FILES ###########################
-@auth.login_required
+
 @files.route("/send/<int:id>/", methods=["GET"])
+@auth.login_required
 def send_file_by_id(id):
     f = File.get_by_id(id)
 
@@ -99,8 +100,8 @@ def send_file_by_id(id):
 
     return send_from_directory(f.directory.path, f.name, as_attachment=True)
 
-@auth.login_required
 @files.route("/send/", methods=["POST"])
+@auth.login_required
 def send_file_by_path():
     path = request.json.get("path")
 
@@ -114,18 +115,24 @@ def send_file_by_path():
     return send_from_directory(f.directory.path, f.name, as_attachment=True)
 
 
-@auth.login_required
 @files.route("/upload/", methods=["POST"])
+@auth.login_required
 def upload_file():
     if not 'file' in request.files:
         return bad_request("No file is sent in this request")
 
-    file = request.files["file"]
-    type = request.form["type"]
-    directory_id = request.form["directory_id"]
-    description = request.form["description"]
+    file = request.files.get("file") or None
+    type = request.form.get("type") or None
+    directory_id = request.form.get("directory_id") or None
+    description = request.form.get("description") or None
 
-    if type in Type.values:
+    if not file:
+        return bad_request("No file sent")
+
+
+    if type in Type.values():
+        if type in [Type.video.value, Type.image.value]:
+            return bad_request("Please use the endpoint for {0}".format(type))
         type = Type[type]
     else:
         type = Type.default
@@ -140,8 +147,8 @@ def upload_file():
 
     f = File(
         type=type,
-        name=file.name,
-        directory_id=d.id,
+        name=file.filename,
+        directory=d,
         user=g.current_user
     )
 
@@ -149,7 +156,7 @@ def upload_file():
         f.description = description
 
     try:
-        f.save()
+        f.save(file)
     except IOException as e:
         return jsonify(e.json())
 

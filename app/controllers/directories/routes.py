@@ -8,13 +8,14 @@ from ...models import Directory
 
 @directories.before_app_first_request
 def create_root_directory():
-    root = Directory.find_by_path("/")
+    root = Directory.get_by_name("root")
     if not root:
         Directory.create_root()
 
 
-@auth.login_required
+
 @directories.route("/", methods=["GET", "POST"])
+@auth.login_required
 def get_children():
     if request.method == "POST":
         path = request.json.get("path")
@@ -36,8 +37,18 @@ def get_children():
         return jsonify({ "directories": [ directory.json() for directory in directories ] })
 
 
+@directories.route("/root/", methods=["GET"])
 @auth.login_required
+def get_root():
+    if not g.current_user.admin:
+        return unauthorized()
+
+    root = Directory.query.filter_by(name="root").first()
+    return jsonify(root.json())
+
+
 @directories.route("/get-id/", methods=["POST"])
+@auth.login_required
 def get_directory_id():
     path = request.json.get("path")
 
@@ -49,8 +60,9 @@ def get_directory_id():
     return jsonify({ 'id': d.id })
 
 
-@auth.login_required
+
 @directories.route("/create/", methods=["POST"])
+@auth.login_required
 def create_directory():
     if not g.current_user.admin:
         return unauthorized()
@@ -79,8 +91,8 @@ def create_directory():
     return success("Directory successfully created")
 
 
-@auth.login_required
 @directories.route("/rights/", methods=["POST"])
+@auth.login_required
 def get_directory_rights():
     if not g.current_user.admin:
         return unauthorized()
@@ -90,8 +102,8 @@ def get_directory_rights():
     return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
 
 
-@auth.login_required
 @directories.route('/delete/', methods=["POST"])
+@auth.login_required
 def delete_directory():
     if g.current_user.admin:
         return unauthorized()

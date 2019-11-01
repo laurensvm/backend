@@ -6,22 +6,19 @@ class Base(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=db.func.now())
+    updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def json(self):
         return {
             "id": self.id,
             "timestamp": self.timestamp,
-            "updates": self.updated
+            "updated": self.updated
         }
 
     def save(self):
         db.session.add(self)
         db.session.commit()
 
-    @staticmethod
-    def get_by_id(self):
-        return Base.query.filter(id=id).first()
 
     def remove(self):
         db.session.delete(self)

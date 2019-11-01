@@ -37,8 +37,8 @@ def verify_password(email_or_token, password):
     return user.verify_password(password)
 
 
-@auth.login_required
 @authentication.before_request
+@auth.login_required
 def before_request():
     try:
         if g.current_user.is_anonymous:
@@ -46,8 +46,9 @@ def before_request():
     except AttributeError as e:
         print(e)
 
-@auth.login_required
+
 @authentication.route('/token/', methods=["GET"])
+@auth.login_required
 def get_token():
     expiration = int(current_app.config["TOKEN_EXPIRATION"]) or 3600
 
@@ -58,8 +59,8 @@ def get_token():
         'expiration': expiration
         })
 
-@auth.login_required
 @authentication.route('/users/<int:id>/', methods=["GET"])
+@auth.login_required
 def get_user_by_id(id):
     user = User.query.filter_by(id=id).first()
 
@@ -68,8 +69,9 @@ def get_user_by_id(id):
 
     return jsonify(user.json())
 
-@auth.login_required
+
 @authentication.route('/users/<string:username>/', methods=["GET"])
+@auth.login_required
 def get_user_by_username(username):
     user = User.query.filter_by(username=username).first()
 
@@ -79,14 +81,16 @@ def get_user_by_username(username):
     return jsonify(user.json())
 
 
-@auth.login_required
+
 @authentication.route('/users/', methods=["GET", "POST"])
+@auth.login_required
 def get_users():
     users = User.query.all()
     return jsonify({ 'users': [ user.json() for user in users ] })
 
-@auth.login_required
+
 @authentication.route('/users/create/', methods=["POST"])
+@auth.login_required
 def create_user():
     if not g.current_user.admin:
         return unauthorized()
@@ -103,8 +107,9 @@ def create_user():
 
     return success("User successfully created")
 
-@auth.login_required
+
 @authentication.route('/users/delete/<string:username>/', methods=["GET"])
+@auth.login_required
 def delete_user(username):
     if g.current_user.admin:
 

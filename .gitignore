@@ -1,6 +1,7 @@
 *.pyc
 /static
 /virtualenv
+/env
 .DS_Store
 DS_Store
 /data

@@ -1,9 +1,9 @@
-from sqlalchemy import and_
+from flask import current_app
 
 from .. import db
 from .base import Base
 from .user import User
-from ..utils import remove_dir
+from ..utils import remove_dir, join
 
 class Directory(Base):
     __tablename__ = "directory"
@@ -12,19 +12,25 @@ class Directory(Base):
     files = db.relationship("File", back_populates="directory", cascade="all, delete, delete-orphan")
     name = db.Column(db.String(256), index=True)
     path = db.Column(db.String(256), unique=True, index=True)
+    internal_path = db.Column(db.String(256), unique=True, index=True)
     size = db.Column(db.Integer, default=0)
     users_with_rights = db.relationship("User", secondary="link")
 
+    def __init__(self, **kwargs):
+        super(Directory, self).__init__(**kwargs)
+        self.internal_path = join(current_app.config["BASEPATH"], self.path)
+
+
     def json(self):
         json = super(Directory, self).json()
-        json = json.update({
+        json.update({
             "parent": self.parent,
             "children": [ child.name for child in self.children ],
             "files": [ file.name for file in self.files ],
             "name": self.name,
             "path": self.path,
             "size": self.size,
-            "users_with_rights": [ user.name for user in self.users_with_rights ]
+            "users_with_rights": [ user.username for user in self.users_with_rights ]
         })
         return json
 
@@ -70,7 +76,7 @@ class Directory(Base):
 
     @staticmethod
     def create_root():
-        d = Directory(parent_id=None, name="root", path="/")
+        d = Directory(parent_id=None, name="root", path="")
 
         admins = User.query.filter_by(admin=True)
         d.users_with_rights.extend(admins)
@@ -80,6 +86,13 @@ class Directory(Base):
     def get_by_path(path):
         return Directory.query.filter_by(path=path).first()
 
+    @staticmethod
+    def get_by_id(id):
+        return Directory.query.filter_by(id=id).first()
+
+    @staticmethod
+    def get_by_name(name):
+        return Directory.query.filter_by(name=name).first()
 
     @staticmethod
     def get_parent(path):
