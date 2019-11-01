@@ -31,11 +31,8 @@ def create_app(config_class=Config):
     from .controllers import authentication
     app.register_blueprint(authentication, url_prefix='/auth')
 
-    from .controllers import directories
-    app.register_blueprint(directories, url_prefix='/directories')
-
-    from .controllers import files
-    app.register_blueprint(files, url_prefix='/files')
+    from .controllers import directory
+    app.register_blueprint(directory, url_prefix='/directory')
 
     from .controllers import controllers
     app.register_blueprint(controllers, url_prefix='')

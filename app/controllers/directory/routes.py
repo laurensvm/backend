@@ -1,41 +1,36 @@
 from flask import jsonify, g, request
 
-from . import directories
+from . import directory
 from ..authentication import auth
 from ..statuscodes import unauthorized, success, bad_request, not_found
 from ...utils import join
 from ...models import Directory
 
-@directories.before_app_first_request
+@directory.before_app_first_request
 def create_root_directory():
     root = Directory.find_by_path("/")
     if not root:
         Directory.create_root()
 
 
-@directories.route("/", methods=["GET", "POST"])
+@directory.route("/", methods=["POST"])
 @auth.login_required
 def get_children():
-    if request.method == "POST":
-        path = request.json.get("path")
+    path = request.json.get("path")
 
-        if not path:
-            return bad_request("No valid path given.")
+    if not path:
+        return bad_request("No valid path given.")
 
-        d = Directory.find_by_path(path)
-        if not d:
-            return not_found("Directory not found")
+    d = Directory.find_by_path(path)
+    if not d:
+        return not_found("Directory not found")
 
-        if not g.current_user in d.users_with_rights:
-            return unauthorized()
+    if not g.current_user in d.users_with_rights:
+        return unauthorized()
 
-        return jsonify({ "children": [child.name for child in d.children ] })
+    return jsonify({ "children": [child.name for child in d.children ] })
 
-    else:
-        directories = Directory.query.all()
-        return jsonify({ "directories": [ directory.json() for directory in directories ] })
-
-@directories.route("/create/", methods=["POST"])
+@directory.route("/create/", methods=["POST"])
 @auth.login_required
 def create_directory():
     if not g.current_user.admin:
@@ -65,7 +60,7 @@ def create_directory():
     return success("Directory successfully created")
 
 
-@directories.route("/rights/", methods=["POST"])
+@directory.route("/rights/", methods=["POST"])
 @auth.login_required
 def get_directory_rights():
     if not g.current_user.admin:
@@ -76,7 +71,7 @@ def get_directory_rights():
     return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
 
 
-@directories.route('/delete/', methods=["POST"])
+@directory.route('/delete/', methods=["POST"])
 @auth.login_required
 def delete_directory():
     if g.current_user.admin:
