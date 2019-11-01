@@ -67,29 +67,12 @@ def get_files_with_name(name):
     return jsonify({'files': [ f.json() for f in files_with_rights ]})
 
 
-@auth.login_required
-@files.route("/delete/<int:id>/", methods=["GET"])
-def delete_file(id):
-    if not g.current_user.admin:
-        return unauthorized()
-
-    f = File.get_by_id(id)
-
-    if not f:
-        return not_found("File not found")
-
-    try:
-        f.remove()
-    except IOException as e:
-        return jsonify(e.json())
-
-    return success("File successfully deleted")
 
 ########################### SENDING FILES ###########################
 @auth.login_required
 @files.route("/send/<int:id>/", methods=["GET"])
 def send_file_by_id(id):
-    f = File.get_by_id(id)
+    f = File.query.filter_by(id=id).first()
 
     if not f:
         return not_found("File was not found")
@@ -104,7 +87,7 @@ def send_file_by_id(id):
 def send_file_by_path():
     path = request.json.get("path")
 
-    f = File.get_by_path(path)
+    f = File.query.filter_by(path=path).first()
     if not f:
         return not_found("File with path {0} is not found".format(path))
 
@@ -130,7 +113,7 @@ def upload_file():
     else:
         type = Type.default
 
-    d = Directory.get_by_id(directory_id)
+    d = Directory.find_by_id(directory_id)
 
     if not d:
         return not_found("Directory does not exist")

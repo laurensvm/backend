@@ -19,10 +19,6 @@ class Base(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    @staticmethod
-    def get_by_id(self):
-        return Base.query.filter(id=id).first()
-
     def remove(self):
         db.session.delete(self)
         db.session.commit()
