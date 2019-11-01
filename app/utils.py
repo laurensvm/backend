@@ -1,5 +1,6 @@
 import shutil
 import os
+from werkzeug.utils import secure_filename
 
 def join(path, name):
     return os.path.join(path, name)
@@ -20,3 +21,9 @@ def remove_directory(path):
 # Removes empty directory
 def remove_dir(path):
     os.rmdir(path)
+
+def secure_filename(name):
+    return secure_filename(name)
+
+def size(path):
+    return os.path.getsize(path)
