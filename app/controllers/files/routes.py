@@ -21,25 +21,6 @@ def get_file_by_path():
 
     return jsonify(f.json())
 
-
-@files.route("/files/", methods=["POST"])
-@auth.login_required
-def get_files_in_directory():
-    path = request.json.get("path") or request.json.get("directory")
-    if not path:
-        return bad_request("No valid directory was given")
-
-    d = Directory.query.filter_by(path=path).first()
-    if not d:
-        return not_found("Directory was not found")
-
-
-    if not g.current_user in d.users_with_rights:
-        return unauthorized()
-
-    return jsonify({'files': [ file.json() for file in d.files ]})
-
-
 @files.route("/<int:id>/", methods=["GET"])
 @auth.login_required
 def get_file_by_id(id):
@@ -65,6 +46,52 @@ def get_files_with_name(name):
             files_with_rights.append(file)
 
     return jsonify({'files': [ f.json() for f in files_with_rights ]})
+
+
+@files.route("/directory/", methods=["POST"])
+@auth.login_required
+def get_files_in_directory():
+    path = request.json.get("path") or request.json.get("directory")
+    if not path:
+        return bad_request("No valid directory was given")
+
+    d = Directory.query.filter_by(path=path).first()
+    if not d:
+        return not_found("Directory was not found")
+
+
+    if not g.current_user in d.users_with_rights:
+        return unauthorized()
+
+    return jsonify({'files': [ file.json() for file in d.files ]})
+
+
+@files.route("/directory/<string:name>/", methods=["GET"])
+@auth.login_required
+def get_files_in_directory_with_name(name):
+    d = Directory.query.filter_by(name=name).first()
+    if not d:
+        return not_found("Directory was not found")
+
+
+    if not g.current_user in d.users_with_rights:
+        return unauthorized()
+
+    return jsonify({'files': [ file.json() for file in d.files ]})
+
+
+@files.route("/directory/<int:id>/", methods=["GET"])
+@auth.login_required
+def get_files_in_directory_with_id(id):
+    d = Directory.query.filter_by(id=id).first()
+    if not d:
+        return not_found("Directory was not found")
+
+
+    if not g.current_user in d.users_with_rights:
+        return unauthorized()
+
+    return jsonify({'files': [ file.json() for file in d.files ]})
 
 
 @files.route("/delete/<int:id>/", methods=["GET"])

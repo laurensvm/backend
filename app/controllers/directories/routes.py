@@ -13,7 +13,6 @@ def create_root_directory():
         Directory.create_root()
 
 
-
 @directories.route("/", methods=["GET", "POST"])
 @auth.login_required
 def get_children():

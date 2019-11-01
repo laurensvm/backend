@@ -20,6 +20,8 @@ class Directory(Base):
         super(Directory, self).__init__(**kwargs)
         self.internal_path = join(current_app.config["BASEPATH"], self.path)
 
+    def __repr__(self):
+        return 'Directory <{0}>'.format(self.path)
 
     def json(self):
         json = super(Directory, self).json()

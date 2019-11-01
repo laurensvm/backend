@@ -39,6 +39,9 @@ class File(Base):
         'polymorphic_on': type
     }
 
+    def __repr__(self):
+        return 'File <{0}>'.format(self.name)
+
     @property
     def internal_path(self):
         return join(self.directory.internal_path, ".".join([self.name, self.extension]))
@@ -77,12 +80,12 @@ class File(Base):
     def json(self):
         json = super(File, self).json()
         json.update({
-            "type": self.type,
+            "type": self.type.value,
             "name": self.name,
             "description": self.description,
             "size": self.size,
-            "directory": self.directory,
-            "user": self.user
+            "directory": self.directory.path,
+            "user": self.user.username
         })
         return json
 

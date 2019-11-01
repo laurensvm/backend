@@ -86,7 +86,7 @@ class User(UserMixin, Base):
         super(User, self).remove()
 
     def __repr__(self):
-        return 'User {0}'.format(self.username)
+        return 'User <{0}>'.format(self.username)
 
     def json(self):
         json = super(User, self).json()
