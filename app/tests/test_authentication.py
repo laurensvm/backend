@@ -52,6 +52,11 @@ class TestAuthentication(TestBase):
         data = self.parse_json(response.data)
         assert data.get("success") == "OK"
 
+        response = self.app.get("/auth/users/{0}/".format(self.test_user["username"]), headers=self.get_header())
+        data = self.parse_json(response.data)
+        assert data.get("error") == "not found"
+
+
     def test_update_user(self):
         pass
 
