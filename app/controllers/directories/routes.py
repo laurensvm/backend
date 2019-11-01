@@ -37,6 +37,19 @@ def get_children():
 
 
 @auth.login_required
+@directories.route("/get-id/", methods=["POST"])
+def get_directory_id():
+    path = request.json.get("path")
+
+    if not path:
+        return bad_request("No valid path given.")
+
+    d = Directory.find_by_path(path)
+
+    return jsonify({ 'id': d.id })
+
+
+@auth.login_required
 @directories.route("/create/", methods=["POST"])
 def create_directory():
     if not g.current_user.admin:
