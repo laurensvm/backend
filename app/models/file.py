@@ -67,11 +67,15 @@ class File(Base):
 
 
     def remove(self):
-        self.user.files.remove(self)
-        self.directory.update_size(self.size, increment=False)
-        self.directory.files.remove(self)
-        remove(self.path)
+        remove(self.internal_path)
+
+        with db.session.no_autoflush:
+            self.user.files.remove(self)
+            self.directory.update_size(self.size, increment=False)
+            self.directory.files.remove(self)
+
         super(File, self).remove()
+
 
     @staticmethod
     def get_by_path(path):

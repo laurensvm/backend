@@ -56,6 +56,9 @@ def get_directory_id():
 
     d = Directory.get_by_path(path)
 
+    if not d:
+        return not_found("Directory not found")
+
     return jsonify({ 'id': d.id })
 
 
