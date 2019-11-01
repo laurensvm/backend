@@ -1,9 +1,10 @@
 import enum
 from sqlalchemy import and_
+from werkzeug.utils import secure_filename
 
 from .. import db
 from ..exceptions import IOException
-from ..utils import join, path_exists, remove, move, secure_filename, size
+from ..utils import join, path_exists, remove, move
 from .base import Base
 from .user import User
 from .directory import Directory
@@ -14,11 +15,6 @@ class Type(enum.Enum):
     video = "video"
     txt = "txt"
     default = "unknown"
-
-    @property
-    def values(self):
-        return [type.value for type in Type]
-
 
 class File(Base):
     __tablename__ = 'file'
@@ -42,7 +38,7 @@ class File(Base):
 
     def __init__(self, **kwargs):
         super(File, self).__init__(**kwargs)
-        self.name = secure_filename(self.name)
+        self.name = File.secure_filename(self.name)
         self.directory.update_size(self.size)
 
     def remove(self):
@@ -68,6 +64,10 @@ class File(Base):
         return File.query.join(Directory).filter(
             and_(Directory.path == path, File.name == name)
         ).first() is not None
+
+    @staticmethod
+    def secure_filename(name):
+        return secure_filename(name)
 
     def move(self, destination):
         d = Directory.query.filter_by(path=destination).first()
@@ -100,11 +100,8 @@ class File(Base):
             raise IOException(IOException.Type.insufficient_rights)
 
         if path_exists(self.path):
-            raise IOException(IOException.Type.path_already_exists)
+            raise Exception(IOException.Type.path_already_exists)
 
         f.save(self.path)
-
-        if self.size == None:
-            self.size = size(self.path)
 
         super(File, self).save()

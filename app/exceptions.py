@@ -13,7 +13,7 @@ class IOException(IOError):
             super(IOException, self).__init__(type.value)
 
     def json(self):
-        return dict(error="error", message=self.message)
+        return dict(message=self.message)
 
     class Type(enum.Enum):
         path_does_not_exist = "Path does not exist"

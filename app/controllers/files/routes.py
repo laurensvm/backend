@@ -2,9 +2,8 @@ from flask import jsonify, g, request, send_from_directory
 
 from . import files
 from ..authentication import auth
-from ..statuscodes import bad_request, not_found, unauthorized, success
-from ...models import File, Directory, Type
-from ...exceptions import IOException
+from ..statuscodes import bad_request, not_found, unauthorized
+from ...models import File, Directory
 
 
 @auth.login_required
@@ -100,40 +99,4 @@ def send_file_by_path():
 @auth.login_required
 @files.route("/upload/", methods=["POST"])
 def upload_file():
-    if not 'file' in request.files:
-        return bad_request("No file is sent in this request")
-
-    file = request.files["file"]
-    type = request.form["type"]
-    directory_id = request.form["directory_id"]
-    description = request.form["description"]
-
-    if type in Type.values:
-        type = Type[type]
-    else:
-        type = Type.default
-
-    d = Directory.find_by_id(directory_id)
-
-    if not d:
-        return not_found("Directory does not exist")
-
-    if not g.current_user in d.users_with_rights:
-        return unauthorized()
-
-    f = File(
-        type=type,
-        name=file.name,
-        directory_id=d.id,
-        user=g.current_user
-    )
-
-    if description:
-        f.description = description
-
-    try:
-        f.save()
-    except IOException as e:
-        return jsonify(e.json())
-
-    return success("File successfully uploaded.")
+    pass
