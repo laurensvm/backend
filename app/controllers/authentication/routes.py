@@ -58,27 +58,21 @@ def get_token():
         'expiration': expiration
         })
 
-@authentication.route('/users/<int:id>/', methods=["GET"])
+@authentication.route('/users/<int:id>/', methods=["GET", "POST"])
 @auth.login_required
 def get_user_by_id(id):
+    if request.method == "POST":
+        id = request.json.get("id")
+
     user = User.query.filter_by(id=id).first()
 
     if not user:
-        return not_found("User not found")
-
-    return jsonify(user.json())
-
-@authentication.route('/users/<string:username>/', methods=["GET"])
-def get_user_by_username(username):
-    user = User.query.filter_by(username=username).first()
-
-    if not user:
-        return not_found("User not found")
+        return not_found()
 
     return jsonify(user.json())
 
 
-@authentication.route('/users/', methods=["GET", "POST"])
+@authentication.route('/users/', methods=["GET"])
 @auth.login_required
 def get_users():
     users = User.query.all()
@@ -102,10 +96,11 @@ def create_user():
 
     return success("User successfully created")
 
-@authentication.route('/users/delete/<string:username>/', methods=["GET"])
+@authentication.route('/users/delete/', methods=["POST"])
 @auth.login_required
-def delete_user(username):
+def delete_user():
     if g.current_user.admin:
+        username = request.json.get("username")
 
         u = User.query.filter_by(username=username).first()
         if u:

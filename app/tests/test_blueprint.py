@@ -46,10 +46,7 @@ class TestBase(unittest.TestCase):
 
     def get_header(self):
         string = "{0}:{1}".format(self.user_dict["email"], self.user_dict["password"])
-        header = dict(Authorization="Basic {user}".format(user=b64encode(string.encode()).decode("ascii")))
-        header["Content-Type"] = "application/json"
-        header["Accept"] = "application/json"
-        return header
+        return {"Authorization": "Basic {user}".format(user=b64encode(string.encode()).decode("ascii"))}
 
     def parse_json(self, data):
         return json.loads(data.decode("utf-8"))
