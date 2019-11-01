@@ -42,8 +42,6 @@ class TestBase(unittest.TestCase):
             db.session.add(self.user)
             db.session.commit()
 
-            self.user_dict["id"] = User.query.filter_by(username=self.user_dict["username"]).first().id
-
     def get_header(self):
         string = "{0}:{1}".format(self.user_dict["email"], self.user_dict["password"])
         return {"Authorization": "Basic {user}".format(user=b64encode(string.encode()).decode("ascii"))}
