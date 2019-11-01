@@ -1,4 +1,4 @@
-from flask import jsonify, g, request
+from flask import jsonify, g, request, send_from_directory
 
 from . import files
 from ..authentication import auth
@@ -64,3 +64,39 @@ def get_files_with_name(name):
             files_with_rights.append(file)
 
     return jsonify({'files': [ f.json() for f in files_with_rights ]})
+
+
+
+########################### SENDING FILES ###########################
+@auth.login_required
+@files.route("/send/<int:id>/", methods=["GET"])
+def send_file_by_id(id):
+    f = File.query.filter_by(id=id).first()
+
+    if not f:
+        return not_found("File was not found")
+
+    if not g.current_user in f.directory.users_with_rights:
+        return unauthorized()
+
+    return send_from_directory(f.directory.path, f.name, as_attachment=True)
+
+@auth.login_required
+@files.route("/send/", methods=["POST"])
+def send_file_by_path():
+    path = request.json.get("path")
+
+    f = File.query.filter_by(path=path).first()
+    if not f:
+        return not_found("File with path {0} is not found".format(path))
+
+    if not g.current_user in f.directory.users_with_rights:
+        return unauthorized()
+
+    return send_from_directory(f.directory.path, f.name, as_attachment=True)
+
+
+@auth.login_required
+@files.route("/upload/", methods=["POST"])
+def upload_file():
+    pass
