@@ -1,7 +1,6 @@
 import os
 
 from flask import jsonify, g, request, url_for, current_app, send_from_directory
-from werkzeug import secure_filename
 
 from . import controllers
 

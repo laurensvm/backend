@@ -11,8 +11,8 @@ class Config(object):
     #     host=os.environ["DB_HOST"],
     #     db=os.environ["DB_DATABASE"]
     # )
-
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(os.path.join(basedir, "app.db"))
+    BASEDIR = basedir
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(os.path.join(BASEDIR, "app.db"))
     BASEPATH = "data/"
     IMAGE_PATH = "data/ios/photos/"
     SQLALCHEMY_TRACK_MODIFICATIONS = False

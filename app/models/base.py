@@ -32,7 +32,7 @@ class LocationMixin(object):
     latitude = db.Column(db.Float, default=None, nullable=True)
     longitude = db.Column(db.Float, default=None, nullable=True)
 
-    def json(self):
+    def location_json(self):
         return {
             "coordinates": {
                 "latitude": self.latitude,

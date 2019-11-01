@@ -8,7 +8,7 @@ from ...models import Directory
 
 @directory.before_app_first_request
 def create_root_directory():
-    root = Directory.query.filter_by(path="/").first()
+    root = Directory.find_by_path("/")
     if not root:
         Directory.create_root()
 
@@ -16,13 +16,12 @@ def create_root_directory():
 @directory.route("/", methods=["POST"])
 @auth.login_required
 def get_children():
-    name = request.json.get("name")
     path = request.json.get("path")
 
-    if not path and not name:
-        return bad_request("No valid name or path given. Please use a path to combat ambiguity.")
+    if not path:
+        return bad_request("No valid path given.")
 
-    d = Directory.find_by_name_and_path(name, path)
+    d = Directory.find_by_path(path)
     if not d:
         return not_found("Directory not found")
 
@@ -41,7 +40,7 @@ def create_directory():
     name = request.json.get("name")
     path = request.json.get("path")
 
-    parent = Directory.query.filter_by(path=path).first()
+    parent = Directory.get_parent(path)
 
     if not parent:
         return bad_request("Directory with path does not exist")
@@ -68,7 +67,7 @@ def get_directory_rights():
         return unauthorized()
 
     path = request.json.get("path")
-    directory = Directory.query.filter_by(path=path).first()
+    directory = Directory.find_by_path(path)
     return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
 
 
@@ -80,7 +79,7 @@ def delete_directory():
 
     path = request.json.get("path")
 
-    d = Directory.query.filter_by(path=path).first()
+    d = Directory.find_by_path(path)
     if not d:
         return bad_request("Directory does not exist")
 
