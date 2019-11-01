@@ -28,8 +28,8 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login_manager.init_app(app)
 
-    from .controllers import authentication
-    app.register_blueprint(authentication, url_prefix='/auth')
+    from .controllers import authentication as auth
+    app.register_blueprint(auth, url_prefix='/auth')
 
     from .controllers import directory
     app.register_blueprint(directory, url_prefix='/directory')

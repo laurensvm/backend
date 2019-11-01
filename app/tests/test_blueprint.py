@@ -16,9 +16,9 @@ class TestBase(unittest.TestCase):
 
         self.app = app.test_client()
         self.ctx = app.app_context()
-        self.ctx.push()
 
-        db.create_all()
+        with self.ctx:
+            db.create_all()
 
         self.create_user()
 
@@ -38,15 +38,17 @@ class TestBase(unittest.TestCase):
             admin=True
         )
 
-        db.session.add(self.user)
-        db.session.commit()
+        with self.ctx:
+            db.session.add(self.user)
+            db.session.commit()
 
-        self.user_dict["id"] = User.query.filter_by(username=self.user_dict["username"]).first().id
+            self.user_dict["id"] = User.query.filter_by(username=self.user_dict["username"]).first().id
 
     def get_header(self):
         string = "{0}:{1}".format(self.user_dict["email"], self.user_dict["password"])
         header = dict(Authorization="Basic {user}".format(user=b64encode(string.encode()).decode("ascii")))
         header["Content-Type"] = "application/json"
+        header["Accept"] = "application/json"
         return header
 
     def parse_json(self, data):
