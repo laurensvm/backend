@@ -23,7 +23,7 @@ class Image(LocationMixin, File):
 
     def json(self):
         json = super(Image, self).json()
-        json.update(super(Image, self).location_json())
+        json.update(super(LocationMixin, self).json())
         json.update({
             "resolution": self.resolution
         })
@@ -32,3 +32,24 @@ class Image(LocationMixin, File):
     def remove(self):
         super(Image, self).remove()
 
+
+
+
+    # def save(self, f):
+    #     # find directory and save with image.directory
+    #     full_filepath = os.path.join(current_app.config["BASEPATH"], self.filepath)
+    #     if os.path.exists(full_filepath):
+    #         raise Exception("Cannot save image. The filepath already exists")
+    #     os.makedirs(os.path.dirname(full_filepath), exist_ok=True)
+    #     f.save(full_filepath)
+    #
+    # @staticmethod
+    # def from_file_and_directory(directory, filename):
+    #     if directory is None:
+    #         directory = "/"
+    #     if filename is None:
+    #         raise ValidationError("Image does not have a name")
+    #
+    #     image = Image(name=filename, directory=directory, user_id=1)
+    #     # image.filepath = os.path.join(directory, filename)
+    #     return image

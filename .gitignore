@@ -10,5 +10,5 @@ app/*.sqlite
 app.egg-info/
 /app/static
 /migrations
-*.db
+app.db
 .idea

@@ -1,9 +1,9 @@
 import enum
 from sqlalchemy import and_
-from werkzeug.utils import secure_filename
+from werkzeug import secure_filename
 
 from .. import db
-from ..utils import join, path_exists, remove, move
+from ..utils import join, path_exists
 from .base import Base
 from .user import User
 from .directory import Directory
@@ -43,7 +43,6 @@ class File(Base):
     def remove(self):
         self.directory.update_size(self.size, increment=False)
         self.directory.files.remove(self)
-        remove(self.path)
         super(File, self).remove()
 
     def json(self):
@@ -79,5 +78,3 @@ class File(Base):
             raise Exception("Cannot save image. The file path already exists")
 
         f.save(self.path)
-
-        super(File, self).save()

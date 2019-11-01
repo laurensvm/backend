@@ -2,7 +2,7 @@ from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, g, request, current_app
 
 from . import authentication
-from ..statuscodes import unauthorized, _unauthorized, success, bad_request
+from ..statuscodes import unauthorized, success, bad_request
 from ...models import User
 
 auth = HTTPBasicAuth()
@@ -19,7 +19,7 @@ def create_user():
 
 @auth.error_handler
 def auth_error():
-    return _unauthorized('Invalid credentials')
+    return unauthorized('Invalid credentials')
 
 @auth.verify_password
 def verify_password(email_or_token, password):
@@ -46,10 +46,10 @@ def before_request():
     except AttributeError as e:
         print(e)
 
-@authentication.route('/token/', methods=["GET"])
+@authentication.route('/token/')
 @auth.login_required
 def get_token():
-    expiration = int(current_app.config["TOKEN_EXPIRATION"]) or 3600
+    expiration = int(current_app["TOKEN_EXPIRATION"]) or 3600
 
     if g.current_user.is_anonymous or g.token_used:
         return unauthorized('Invalid credentials')
@@ -57,16 +57,6 @@ def get_token():
         'token': g.current_user.generate_auth_token(expiration=expiration),
         'expiration': expiration
         })
-
-@authentication.route('/users/<int:id>/', methods=["GET", "POST"])
-@auth.login_required
-def get_user_by_id():
-    if request.method == "POST":
-        # Get request.json
-        pass
-    else:
-        # Get request params
-        pass
 
 @authentication.route('/users/', methods=["GET"])
 @auth.login_required

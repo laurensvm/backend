@@ -3,7 +3,6 @@ from sqlalchemy import and_
 from .. import db
 from .base import Base
 from .user import User
-from ..utils import remove_dir
 
 class Directory(Base):
     __tablename__ = "directory"
@@ -53,10 +52,13 @@ class Directory(Base):
         for file in self.files:
             file.remove()
 
-        remove_dir(self.path)
-
         super(Directory, self).remove()
 
+    @staticmethod
+    def exists(path, name):
+        if Directory.query.filter_by(path=path).filter_by(name=name).first():
+            return True
+        return False
 
     @staticmethod
     def exists(path):
@@ -77,12 +79,8 @@ class Directory(Base):
         d.save()
 
     @staticmethod
-    def find_by_path(path):
-        return Directory.query.filter_by(path=path).first()
-
-    @staticmethod
-    def get_parent(path):
-        d = Directory.find_by_path(path)
-        if d:
-            return d.parent
-        return None
+    def find_by_name_and_path(name, path):
+        return Directory.query.filter(
+            and_(Directory.name == name,
+                 Directory.path == path)
+        ).first()
