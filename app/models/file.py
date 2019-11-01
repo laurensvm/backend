@@ -19,7 +19,6 @@ class Type(enum.Enum):
     def values(self):
         return [type.value for type in Type]
 
-
 class File(Base):
     __tablename__ = 'file'
     type = db.Column(db.Enum(Type), default=Type.default)
@@ -46,10 +45,15 @@ class File(Base):
         self.directory.update_size(self.size)
 
     def remove(self):
+        self.user.files.remove(self)
         self.directory.update_size(self.size, increment=False)
         self.directory.files.remove(self)
         remove(self.path)
         super(File, self).remove()
+
+    @staticmethod
+    def get_by_path():
+        return File.query.filter_by(id=id).first()
 
     def json(self):
         json = super(File, self).json()
@@ -108,3 +112,4 @@ class File(Base):
             self.size = size(self.path)
 
         super(File, self).save()
+
