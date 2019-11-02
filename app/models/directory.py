@@ -3,7 +3,7 @@ from flask import current_app
 from .. import db
 from .base import Base
 from .user import User
-from ..utils import remove_dir, join
+from ..utils import remove_dir, join, secure_filename
 
 class Directory(Base):
     __tablename__ = "directory"
@@ -13,7 +13,7 @@ class Directory(Base):
     name = db.Column(db.String(256), index=True)
     path = db.Column(db.String(256), unique=True, index=True)
     internal_path = db.Column(db.String(256), unique=True, index=True)
-    size = db.Column(db.Integer, default=0)
+    size = db.Column(db.BigInteger, default=0)
     users_with_rights = db.relationship("User", secondary="link")
 
     def __init__(self, **kwargs):
@@ -79,6 +79,24 @@ class Directory(Base):
     @staticmethod
     def create_root():
         d = Directory(parent_id=None, name="root", path="")
+
+        admins = User.query.filter_by(admin=True)
+        d.users_with_rights.extend(admins)
+        d.save()
+
+    @staticmethod
+    def generate_path(parent, name):
+
+        if isinstance(parent, int):
+            parent = Directory.query.filter_by(id=parent).first()
+
+        return join(parent.path, secure_filename(name))
+
+    @staticmethod
+    def create_thumbnails():
+        name = current_app.config["THUMBNAIL_FOLDER"]
+        root = Directory.query.filter_by(name="root").first()
+        d = Directory(parent_id=root.id, name=name, path=Directory.generate_path(root, name))
 
         admins = User.query.filter_by(admin=True)
         d.users_with_rights.extend(admins)

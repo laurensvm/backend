@@ -1,34 +1,44 @@
-import os
+import uuid
 
-from flask import current_app, g
+from PIL import Image
+from flask import current_app
 
-from .. import db
-from ..exceptions import ValidationError
-from .file import File, Type
-from .base import LocationMixin
+from .file import File, Type, Directory
+from .base import LocationMixin, AssetMixin
+
+from ..utils import join
 
 
-
-class Image(LocationMixin, File):
+class Image(AssetMixin, LocationMixin, File):
     __tablename__ = "image"
-    resolution = db.Column(db.Integer, default=None, nullable=True)
 
     def __init__(self, **kwargs):
         super(Image, self).__init__(**kwargs)
         self.type = Type.image
+        self.thumbnail_path = self.generate_thumbnail_path()
 
     __mapper_args__ = {
         'polymorphic_identity':'image',
     }
 
+    def generate_thumbnail_path(self):
+        thumbnail = Directory.query.filter_by(name=current_app.config["THUMBNAIL_FOLDER"]).first()
+        return join(thumbnail.internal_path, uuid.uuid1())
+
     def json(self):
         json = super(Image, self).json()
         json.update(super(Image, self).location_json())
-        json.update({
-            "resolution": self.resolution
-        })
+        json.update(super(Image, self).asset_json())
         return json
 
-    def remove(self):
-        super(Image, self).remove()
+
+    def save(self, f):
+        super(Image, self).save(f)
+
+        im = Image.open(self.internal_path)
+        im.thumbnail(current_app.config["THUMBNAIL_IMAGE_QUALITY"])
+        im.save(self.thumbnail_path)
+
+
+
 

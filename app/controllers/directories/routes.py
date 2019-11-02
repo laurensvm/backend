@@ -8,9 +8,15 @@ from ...models import Directory
 
 @directories.before_app_first_request
 def create_root_directory():
+
     root = Directory.get_by_name("root")
     if not root:
         Directory.create_root()
+
+    thumbnails = Directory.get_by_name("thumbnails")
+    if not thumbnails:
+        Directory.create_thumbnails()
+
 
 
 @directories.route("/", methods=["GET", "POST"])

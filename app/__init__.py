@@ -37,8 +37,11 @@ def create_app(config_class=Config):
     from .controllers import files
     app.register_blueprint(files, url_prefix='/files')
 
-    from .controllers import controllers
-    app.register_blueprint(controllers, url_prefix='')
+    from .controllers import images
+    app.register_blueprint(images, url_prefix='/images')
+
+    from .controllers import videos
+    app.register_blueprint(videos, url_prefix='/videos')
 
     return app
 
