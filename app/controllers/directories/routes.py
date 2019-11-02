@@ -77,9 +77,13 @@ def create_directory():
 
 
     name = request.json.get("name")
-    path = request.json.get("path")
 
-    parent = Directory.get_parent(path)
+    path = request.json.get("path")
+    parent_id = request.json.get("parent_id")
+    if path:
+        parent = Directory.get_parent(path)
+    elif parent_id:
+        parent = Directory.query.filter_by(id=parent_id).first()
 
     if not parent:
         return bad_request("Directory with path does not exist")
@@ -90,8 +94,8 @@ def create_directory():
     # Create directory
     d = Directory(
         parent_id=parent.id,
-        name=name,
-        path=join(path, name))
+        name=name
+    )
     d.users_with_rights.append(g.current_user)
 
     d.save()

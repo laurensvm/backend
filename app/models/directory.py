@@ -18,17 +18,21 @@ class Directory(Base):
 
     def __init__(self, **kwargs):
         super(Directory, self).__init__(**kwargs)
+        self.path = self.generate_path(self.parent_id, self.name)
         self.internal_path = join(current_app.config["BASEPATH"], self.path)
         makedir(self.internal_path)
 
 
     def __repr__(self):
-        return 'Directory <{0}>'.format(self.path)
+        return 'Directory {0}'.format(self.id)
+
+    def __str__(self):
+        return 'Directory {0}'.format(self.id)
 
     def json(self):
         json = super(Directory, self).json()
         json.update({
-            "parent": self.parent,
+            "parent_id": self.parent_id,
             "children": [ child.name for child in self.children ],
             "files": [ file.name for file in self.files ],
             "name": self.name,

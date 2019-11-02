@@ -1,4 +1,4 @@
-from flask import jsonify, g, request, send_from_directory
+from flask import jsonify, g, request, send_file
 from sqlalchemy import desc
 
 from . import images
@@ -7,14 +7,14 @@ from ..statuscodes import bad_request, not_found, unauthorized, success
 from ...models import Image, Type, Directory
 from ...exceptions import IOException
 
+
 @images.route("/", methods=["GET"])
 @auth.login_required
 def get_latest_images():
-    pass
-
-@images.route("/thumbnail-url/", methods=["GET"])
-def get_latest_images_url():
-    amount = int(request.args.get("amount")) or 30
+    try:
+        amount = int(request.args.get("amount")) or 30
+    except ValueError as e:
+        return bad_request("Could not convert amount to integer")
 
     images = Image.query.order_by(desc(Image.timestamp)).limit(amount).all()
 
@@ -22,7 +22,17 @@ def get_latest_images_url():
         if not g.current_user in image.directory.users_with_rights:
             images.remove(image)
 
-    return jsonify({'urls': [ image.thumbnail_json() for image in images ]})
+    return jsonify({'images': [image.json() for image in images]})
+
+@images.route("/thumbnail/<int:id>/", methods=["GET"])
+@auth.login_required
+def get_thumbnail_image(id):
+    image = Image.query.filter_by(id=id).first()
+
+    if not g.current_user in image.directory.users_with_rights:
+        return unauthorized()
+
+    return send_file(image.thumbnail_path)
 
 
 @images.route("/upload/", methods=["POST"])

@@ -51,10 +51,5 @@ class AssetMixin(object):
         return {
             "device": self.device,
             "resolution": self.resolution,
-            "thumbnail_path": self.thumbnail_path
         }
 
-    def thumbnail_json(self):
-        return {
-            "thumbnail_path": self.thumbnail_path
-        }
