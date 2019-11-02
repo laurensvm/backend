@@ -3,7 +3,7 @@ from flask import current_app
 from .. import db
 from .base import Base
 from .user import User
-from ..utils import remove_dir, join, secure_filename
+from ..utils import remove_dir, join, secure_filename, makedir
 
 class Directory(Base):
     __tablename__ = "directory"
@@ -19,6 +19,8 @@ class Directory(Base):
     def __init__(self, **kwargs):
         super(Directory, self).__init__(**kwargs)
         self.internal_path = join(current_app.config["BASEPATH"], self.path)
+        makedir(self.internal_path)
+
 
     def __repr__(self):
         return 'Directory <{0}>'.format(self.path)
@@ -78,7 +80,7 @@ class Directory(Base):
 
     @staticmethod
     def create_root():
-        d = Directory(parent_id=None, name="root", path="")
+        d = Directory(parent_id=None, name="root", path="root")
 
         admins = User.query.filter_by(admin=True)
         d.users_with_rights.extend(admins)

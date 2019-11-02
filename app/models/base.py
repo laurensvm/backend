@@ -45,7 +45,7 @@ class LocationMixin(object):
 class AssetMixin(object):
     device = db.Column(db.String(30), nullable=True)
     resolution = db.Column(db.Integer, nullable=True)
-    thumbnail_path = db.Column(db.String(256), nullable=True)
+    thumbnail_path = db.Column(db.String(512), nullable=True)
 
     def asset_json(self):
         return {

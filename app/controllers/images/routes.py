@@ -56,7 +56,6 @@ def upload_file():
         return unauthorized()
 
     im = Image(
-        type=Type.image,
         name=file.filename,
         directory=d,
         user=g.current_user,

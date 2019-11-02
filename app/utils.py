@@ -27,3 +27,6 @@ def secure_filename(name):
 
 def size(path):
     return os.path.getsize(path)
+
+def makedir(path):
+    return os.mkdir(path)
