@@ -18,6 +18,37 @@ def create_root_directory():
         Directory.create_thumbnails()
 
 
+@directories.route("/<int:id>/", methods=["GET"])
+@auth.login_required
+def get_directory_by_id(id):
+    d = Directory.get_by_id(id)
+
+    if not d:
+        return not_found("Directory is not found")
+
+    if not g.current_user in d.users_with_rights:
+        return unauthorized()
+
+    return jsonify(d.json())
+
+@directories.route("/<int:id>/files/", methods=["GET"])
+@auth.login_required
+def get_files_in_directory(id):
+    d = Directory.get_by_id(id)
+
+    try:
+        amount = int(request.args.get("amount")) or 30
+    except ValueError as e:
+        return bad_request("Amount cannot be converted to integer")
+
+    if not d:
+        return not_found("Directory is not found")
+
+    if not g.current_user in d.users_with_rights:
+        return unauthorized()
+
+    return jsonify({'files': [file.json() for file in d.files[:amount] ]})
+
 
 @directories.route("/", methods=["GET", "POST"])
 @auth.login_required
@@ -52,7 +83,7 @@ def get_root():
     return jsonify(root.json())
 
 
-@directories.route("/get-id/", methods=["POST"])
+@directories.route("/id/", methods=["POST"])
 @auth.login_required
 def get_directory_id():
     path = request.json.get("path")

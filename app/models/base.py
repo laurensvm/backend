@@ -46,10 +46,12 @@ class AssetMixin(object):
     device = db.Column(db.String(30), nullable=True)
     resolution = db.Column(db.Integer, nullable=True)
     thumbnail_path = db.Column(db.String(512), nullable=True)
+    local_id = db.Column(db.String(256), index=True)
 
     def asset_json(self):
         return {
             "device": self.device,
             "resolution": self.resolution,
+            "local_identifier": self.local_id
         }
 

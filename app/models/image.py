@@ -42,6 +42,10 @@ class Image(AssetMixin, LocationMixin, File):
         im.thumbnail(current_app.config["THUMBNAIL_IMAGE_QUALITY"])
         im.save(self.thumbnail_path)
 
+    @staticmethod
+    def get_by_id(id):
+        return Image.query.filter_by(id=id).first()
+
 
 @event.listens_for(Image, 'mapper_configured')
 def receive_mapper_configured(mapper, class_):

@@ -27,7 +27,7 @@ def get_latest_images():
 @images.route("/thumbnail/<int:id>/", methods=["GET"])
 @auth.login_required
 def get_thumbnail_image(id):
-    image = Image.query.filter_by(id=id).first()
+    image = Image.get_by_id(id)
 
     if not g.current_user in image.directory.users_with_rights:
         return unauthorized()
@@ -49,6 +49,7 @@ def upload_file():
     longitude = request.form.get("longitude") or None
     device = request.form.get("device") or None
     resolution = request.form.get("resolution") or None
+    local_id = request.form.get("local_identifier")
 
     if not file:
         return bad_request("No file sent")
@@ -72,11 +73,14 @@ def upload_file():
         latitude=latitude,
         longitude=longitude,
         device=device,
-        resolution=resolution
+        resolution=resolution,
     )
 
     if description:
         im.description = description
+
+    if local_id:
+        im.local_id = local_id
 
     try:
         im.save(file)
@@ -84,3 +88,30 @@ def upload_file():
         return jsonify(e.json())
 
     return success("Image successfully uploaded.")
+
+@images.route("/download/<int:id>/", methods=["GET"])
+@auth.login_required
+def download_image(id):
+    im = Image.get_by_id(id)
+
+    if not im:
+        return not_found("Image with id {0} not found".format(id))
+
+    if not g.current_user in im.directory.users_with_rights:
+        return unauthorized()
+
+    return send_file(im.internal_path)
+
+
+@images.route("/<int:id>/", methods=["GET"])
+@auth.login_required
+def get_image(id):
+    im = Image.get_by_id(id)
+
+    if not im:
+        return not_found("Image with id {0} not found".format(id))
+
+    if not g.current_user in im.directory.users_with_rights:
+        return unauthorized()
+
+    return jsonify(im.json())

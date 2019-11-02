@@ -86,6 +86,7 @@ class File(Base):
         json.update({
             "type": self.type.value,
             "name": self.name,
+            "extension": self.extension,
             "description": self.description,
             "size": self.size,
             "directory": self.directory.path,
