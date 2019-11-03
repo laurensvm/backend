@@ -151,6 +151,10 @@ class Directory(Base):
         d.save()
 
     @staticmethod
+    def get_thumbnail_directory():
+        return Directory.query.filter_by(name=current_app.config["THUMBNAIL_FOLDER"]).first()
+
+    @staticmethod
     def get_by_path(path):
         return Directory.query.filter_by(path=path).first()
 

@@ -11,9 +11,11 @@ from ...exceptions import IOException
 @auth.login_required
 def get_latest_videos():
     try:
-        amount = int(request.args.get("amount")) or 30
+        amount = int(request.args.get("amount"))
     except ValueError as e:
         return bad_request("Could not convert amount to integer")
+    except TypeError:
+        amount = 30
 
     videos = Video.get_latest(amount)
 
@@ -46,6 +48,12 @@ def get_thumbnail_image(id):
     if not g.current_user in video.directory.users_with_rights:
         return unauthorized()
 
+    if not video:
+        return not_found("Video not found")
+
+    if not video.thumbnail_path:
+        return not_found("Video has no thumbnail image")
+
     return send_file(video.thumbnail_path)
 
 
@@ -72,7 +80,7 @@ def upload_file():
         return bad_request("No video file is found in the files")
 
     type = request.form.get("type") or None
-    directory_id = request.form.get("directory_id") or None
+    directory_id = request.form.get("directory_id")
     description = request.form.get("description") or None
     latitude = request.form.get("latitude") or None
     longitude = request.form.get("longitude") or None
@@ -80,6 +88,9 @@ def upload_file():
     resolution = request.form.get("resolution") or None
     local_id = request.form.get("local_identifier")
     length = request.form.get("length") or None
+
+    if not directory_id:
+        return bad_request("No directory id is given in request")
 
     if type not in [Type.video, None]:
         return bad_request("Please use the endpoint for {0}".format(type))
@@ -120,3 +131,30 @@ def upload_file():
         return jsonify(e.json())
 
     return success("Video successfully uploaded.")
+
+@videos.route("/download/<int:id>/", methods=["GET"])
+@auth.login_required
+def download_video(id):
+    v = Video.get_by_id(id)
+
+    if not v:
+        return not_found("Video with id {0} not found".format(id))
+
+    if not g.current_user in v.directory.users_with_rights:
+        return unauthorized()
+
+    return send_file(v.internal_path)
+
+
+@videos.route("/<int:id>/", methods=["GET"])
+@auth.login_required
+def get_video(id):
+    v = Video.get_by_id(id)
+
+    if not v:
+        return not_found("Video with id {0} not found".format(id))
+
+    if not g.current_user in v.directory.users_with_rights:
+        return unauthorized()
+
+    return jsonify(v.json())

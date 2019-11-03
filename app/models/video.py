@@ -37,6 +37,10 @@ class Video(AssetMixin, LocationMixin, File):
         self.thumbnail_path = self.generate_thumbnail_path()
         im.save(self.thumbnail_path)
 
+    @staticmethod
+    def get_by_id(id):
+        return Video.query.filter_by(id=id).first()
+
 
 
 @event.listens_for(Video, 'mapper_configured')

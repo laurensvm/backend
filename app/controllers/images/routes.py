@@ -47,6 +47,9 @@ def get_thumbnail_image(id):
     if not g.current_user in image.directory.users_with_rights:
         return unauthorized()
 
+    if not image:
+        return not_found("Image not found")
+
     return send_file(image.thumbnail_path)
 
 
@@ -69,6 +72,8 @@ def upload_file():
     if not file:
         return bad_request("No file sent")
 
+    if not directory_id:
+        return bad_request("No directory id is found in request")
 
     if type not in [Type.image, None]:
         return bad_request("Please use the endpoint for {0}".format(type))

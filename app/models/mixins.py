@@ -33,7 +33,7 @@ class AssetMixin(object):
         }
 
     def generate_thumbnail_path(self):
-        thumbnail = Directory.query.filter_by(name=current_app.config["THUMBNAIL_FOLDER"]).first()
+        thumbnail = Directory.get_thumbnail_directory()
         name = ".".join([str(uuid.uuid1()), "jpg"])
         return join(thumbnail.internal_path, name)
 
