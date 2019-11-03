@@ -6,13 +6,15 @@ from sqlalchemy import event
 from collections import defaultdict
 
 from .file import File, Type, Directory
-from .base import LocationMixin, AssetMixin
+from .mixins import LocationMixin, AssetMixin
 
-from ..utils import join
+from .. import db
 
 
 class Image(AssetMixin, LocationMixin, File):
     __tablename__ = "image"
+    id = db.Column(db.Integer, db.ForeignKey('file.id'), primary_key=True)
+
 
     def __init__(self, **kwargs):
         self.type = Type.image
@@ -22,11 +24,6 @@ class Image(AssetMixin, LocationMixin, File):
     __mapper_args__ = {
         'polymorphic_identity':'image',
     }
-
-    def generate_thumbnail_path(self):
-        thumbnail = Directory.query.filter_by(name=current_app.config["THUMBNAIL_FOLDER"]).first()
-        name = ".".join([str(uuid.uuid1()), "jpg"])
-        return join(thumbnail.internal_path, name)
 
     def json(self):
         json = super(Image, self).json()

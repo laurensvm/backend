@@ -1,6 +1,6 @@
 import enum
 from os.path import join
-from sqlalchemy import and_, event
+from sqlalchemy import and_, event, desc
 from collections import defaultdict
 
 from .. import db
@@ -123,6 +123,10 @@ class File(Base):
     @staticmethod
     def get_by_id(id):
         return File.query.filter_by(id=id).first()
+
+    @staticmethod
+    def get_latest(amount):
+        return File.query.order_by(desc(File.timestamp)).limit(amount).all()
 
     # def move(self, destination):
     #     d = Directory.query.filter_by(path=destination).first()

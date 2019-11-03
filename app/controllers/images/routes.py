@@ -16,13 +16,28 @@ def get_latest_images():
     except ValueError as e:
         return bad_request("Could not convert amount to integer")
 
-    images = Image.query.order_by(desc(Image.timestamp)).limit(amount).all()
+    images = Image.get_latest(amount)
 
     for image in images:
         if not g.current_user in image.directory.users_with_rights:
             images.remove(image)
 
     return jsonify({'images': [image.json() for image in images]})
+
+@images.route("/latest/id/", methods=["GET"])
+def get_latest_video_ids():
+    try:
+        amount = int(request.args.get("amount")) or 30
+    except ValueError as e:
+        return bad_request("Could not convert amount to integer")
+
+    images = Image.get_latest(amount)
+
+    for image in images:
+        if not g.current_user in image.directory.users_with_rights:
+            images.remove(image)
+
+    return jsonify({'images': [image.id for image in images]})
 
 @images.route("/thumbnail/<int:id>/", methods=["GET"])
 @auth.login_required

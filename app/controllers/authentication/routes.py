@@ -5,6 +5,7 @@ from . import authentication
 from ..statuscodes import unauthorized, _unauthorized, success, bad_request, not_found
 from ...models import User
 
+
 auth = HTTPBasicAuth()
 
 @authentication.before_app_first_request
