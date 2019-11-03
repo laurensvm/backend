@@ -24,7 +24,7 @@ def get_latest_images():
 
     return jsonify({'images': [image.json() for image in images]})
 
-@images.route("/latest/id/", methods=["GET"])
+@images.route("/id/", methods=["GET"])
 def get_latest_video_ids():
     try:
         amount = int(request.args.get("amount")) or 30

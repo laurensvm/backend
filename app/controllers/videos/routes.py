@@ -25,7 +25,7 @@ def get_latest_videos():
 
     return jsonify({'videos': [video.json() for video in videos]})
 
-@videos.route("/latest/id/", methods=["GET"])
+@videos.route("/id/", methods=["GET"])
 def get_latest_video_ids():
     try:
         amount = int(request.args.get("amount"))
@@ -57,6 +57,19 @@ def get_thumbnail_image(id):
         return not_found("Video has no thumbnail image")
 
     return send_file(video.thumbnail_path)
+
+@videos.route("/length/<int:id>", methods=["GET"])
+@auth.login_required
+def get_video_length_by_id(id):
+    video = Video.get_by_id(id)
+
+    if not video:
+        return not_found("Video not found")
+
+    if not video.length:
+        return not_found("Video has no length")
+
+    return jsonify({'length': video.length })
 
 
 @videos.route("/upload/", methods=["POST"])

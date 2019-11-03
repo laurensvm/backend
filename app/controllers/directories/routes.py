@@ -50,34 +50,24 @@ def get_files_in_directory(id):
     return jsonify({'files': [file.json() for file in d.files[:amount] ]})
 
 
-@directories.route("/", methods=["GET", "POST"])
+@directories.route("/", methods=["GET"])
 @auth.login_required
 def get_children():
-    if request.method == "POST":
-        path = request.json.get("path")
+    try:
+        amount = int(request.args.get("amount"))
+    except ValueError as e:
+        return bad_request("Could not convert amount to integer")
+    except TypeError:
+        amount = 30
 
-        if not path:
-            return bad_request("No valid path given.")
+    dirs = []
+    directories = Directory.query.limit(amount).all()
 
-        d = Directory.get_by_path(path)
-        if not d:
-            return not_found("Directory not found")
+    for dir in directories:
+        if g.current_user in dir.users_with_rights:
+            dirs.append(dir)
 
-        if not g.current_user in d.users_with_rights:
-            return unauthorized()
-
-        return jsonify({ "children": [child.name for child in d.children ] })
-
-    else:
-        try:
-            amount = int(request.args.get("amount"))
-        except ValueError as e:
-            return bad_request("Could not convert amount to integer")
-        except TypeError:
-            amount = 30
-
-        directories = Directory.query.limit(amount).all()
-        return jsonify({ "directories": [ directory.json() for directory in directories ] })
+    return jsonify({ "directories": [ d.json() for d in dirs ] })
 
 
 @directories.route("/root/", methods=["GET"])
@@ -166,15 +156,18 @@ def create_directory():
     return success("Directory successfully created")
 
 
-@directories.route("/rights/", methods=["POST"])
+@directories.route("/<int:id>/rights/", methods=["GET"])
 @auth.login_required
-def get_directory_rights():
+def get_directory_rights(id):
     if not g.current_user.admin:
         return unauthorized()
 
-    path = request.json.get("path")
-    directory = Directory.get_by_path(path)
-    return jsonify({'users': [ user.username for user in directory.users_with_rights ]})
+    directory = Directory.get_by_id(id)
+
+    if not directory:
+        return not_found("Directory with id {0} is not found".format(id))
+
+    return jsonify({'users': [ user for user in directory.users_with_rights ]})
 
 
 @directories.route('/delete/', methods=["POST"])

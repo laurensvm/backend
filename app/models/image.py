@@ -2,7 +2,7 @@ import uuid
 
 from PIL import Image as Im
 from flask import current_app
-from sqlalchemy import event
+from sqlalchemy import event, desc
 from collections import defaultdict
 
 from .file import File, Type, Directory
@@ -42,6 +42,10 @@ class Image(AssetMixin, LocationMixin, File):
     @staticmethod
     def get_by_id(id):
         return Image.query.filter_by(id=id).first()
+
+    @staticmethod
+    def get_latest(amount):
+        return Image.query.order_by(desc(Image.timestamp)).limit(amount).all()
 
 
 @event.listens_for(Image, 'mapper_configured')

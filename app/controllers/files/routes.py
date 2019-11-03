@@ -1,4 +1,4 @@
-from flask import jsonify, g, request, send_from_directory
+from flask import jsonify, g, request, send_file
 
 from . import files
 from ..authentication import auth
@@ -20,6 +20,26 @@ def get_file_by_path():
         return unauthorized()
 
     return jsonify(f.json())
+
+@files.route("/", methods=["GET"])
+@auth.login_required
+def get_latest_files():
+    try:
+        amount = int(request.args.get("amount"))
+    except ValueError as e:
+        return bad_request("Could not convert amount to integer")
+    except TypeError:
+        amount = 30
+
+    files = File.get_latest(amount)
+
+    fs = []
+    for file in files:
+        if g.current_user in file.directory.users_with_rights:
+            fs.append(file)
+
+    return jsonify({'files': [f.json() for f in fs ]})
+
 
 @files.route("/<int:id>/", methods=["GET"])
 @auth.login_required
@@ -139,9 +159,9 @@ def rename_file(id):
         name=f.name
     ))
 
-########################### SENDING FILES ###########################
+########################### DOWNLOADING FILES ###########################
 
-@files.route("/send/<int:id>/", methods=["GET"])
+@files.route("/download/<int:id>/", methods=["GET"])
 @auth.login_required
 def send_file_by_id(id):
     f = File.get_by_id(id)
@@ -152,9 +172,9 @@ def send_file_by_id(id):
     if not g.current_user in f.directory.users_with_rights:
         return unauthorized()
 
-    return send_from_directory(f.directory.path, f.name, as_attachment=True)
+    return send_file(f.internal_path)
 
-@files.route("/send/", methods=["POST"])
+@files.route("/download/", methods=["POST"])
 @auth.login_required
 def send_file_by_path():
     path = request.json.get("path")
@@ -166,7 +186,7 @@ def send_file_by_path():
     if not g.current_user in f.directory.users_with_rights:
         return unauthorized()
 
-    return send_from_directory(f.directory.path, f.name, as_attachment=True)
+    return send_file(f.internal_path)
 
 
 @files.route("/upload/", methods=["POST"])
@@ -177,8 +197,11 @@ def upload_file():
 
     file = request.files.get("file") or None
     type = request.form.get("type") or None
-    directory_id = request.form.get("directory_id") or None
+    directory_id = request.form.get("directory_id")
     description = request.form.get("description") or None
+
+    if not directory_id:
+        return bad_request("No directory id given")
 
     if not file:
         return bad_request("No file sent")
