@@ -111,6 +111,8 @@
     + returns: `{ Video }`
   + `/videos/thumbnail/<int:id>/` GET
     + returns: `FileObject`
+  + `/videos/length/<int:id>/` GET
+    + returns: `{ 'length': Integer }`
   + `/videos/download/<int:id>/` GET
     + returns: `FileObject`
   + `/videos/upload/` POST
