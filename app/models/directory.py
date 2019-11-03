@@ -3,7 +3,8 @@ from flask import current_app
 from .. import db
 from .base import Base
 from .user import User
-from ..utils import remove_dir, join, secure_filename, makedir
+from ..utils import remove_dir, join, secure_filename, makedir, rename
+from ..exceptions import IOException
 
 class Directory(Base):
     __tablename__ = "directory"
@@ -18,8 +19,8 @@ class Directory(Base):
 
     def __init__(self, **kwargs):
         super(Directory, self).__init__(**kwargs)
-        self.path = self.generate_path(self.parent_id, self.name)
-        self.internal_path = join(current_app.config["BASEPATH"], self.path)
+        self.path = Directory.generate_path(self.parent_id, self.name)
+        self.internal_path = Directory.generate_internal_path(self.path)
         makedir(self.internal_path)
 
 
@@ -54,6 +55,25 @@ class Directory(Base):
         else:
             self.size -= size
 
+    def rename(self, name):
+        old_path = self.internal_path
+
+        name = secure_filename(name)
+        new_path = Directory.generate_path(self.parent_id, name)
+
+        d = Directory.get_by_path(new_path)
+        if d:
+            raise IOException(IOException.Type.path_already_exists)
+
+
+        with db.session.no_autoflush:
+            self.name = name
+            self.path = Directory.generate_path(self.parent_id, self.name)
+            self.internal_path = Directory.generate_internal_path(self.path)
+
+        rename(old_path, self.internal_path)
+        self.commit()
+
     def remove(self):
         for user in self.users_with_rights:
             user.directory_rights.remove(self)
@@ -78,9 +98,9 @@ class Directory(Base):
             return True
         return False
 
-    # @staticmethod
-    # def get_abspath():
-        # return
+    @staticmethod
+    def get_abspath():
+        return current_app.config["BASEPATH"]
 
     @staticmethod
     def create_root():
@@ -97,6 +117,10 @@ class Directory(Base):
             parent = Directory.query.filter_by(id=parent).first()
 
         return join(parent.path, secure_filename(name))
+
+    @staticmethod
+    def generate_internal_path(path):
+        return join(Directory.get_abspath(), path)
 
     @staticmethod
     def create_thumbnails():

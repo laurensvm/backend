@@ -112,6 +112,33 @@ def delete_file(id):
 
     return success("File successfully deleted")
 
+
+@files.route("/<int:id>/rename/", methods=["POST"])
+@auth.login_required
+def rename_file(id):
+    if not g.current_user.admin:
+        return unauthorized()
+
+    name = request.json.get("name")
+
+    if not name:
+        return bad_request("No valid name given")
+
+    f = File.get_by_id(id)
+
+    if not f:
+        return not_found("Directory is not found")
+
+    try:
+        f.rename(name)
+    except IOException as e:
+        return jsonify(e.json())
+
+    return success("File id {file} renamed to {name}".format(
+        file=f.id,
+        name=f.name
+    ))
+
 ########################### SENDING FILES ###########################
 
 @files.route("/send/<int:id>/", methods=["GET"])

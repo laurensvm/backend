@@ -12,7 +12,10 @@ def move(path, destination):
     return shutil.move(path, destination)
 
 def remove(path):
-    os.remove(path)
+    return os.remove(path)
+
+def rename(old_path, new_path):
+    return os.rename(old_path, new_path)
 
 # Removes directory and all children
 def remove_directory(path):

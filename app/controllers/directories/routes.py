@@ -3,7 +3,7 @@ from flask import jsonify, g, request
 from . import directories
 from ..authentication import auth
 from ..statuscodes import unauthorized, success, bad_request, not_found
-from ...utils import join
+from ...exceptions import IOException
 from ...models import Directory
 
 @directories.before_app_first_request
@@ -69,7 +69,7 @@ def get_children():
         return jsonify({ "children": [child.name for child in d.children ] })
 
     else:
-        directories = Directory.query.all()
+        directories = Directory.query.limit(30).all()
         return jsonify({ "directories": [ directory.json() for directory in directories ] })
 
 
@@ -98,6 +98,31 @@ def get_directory_id():
 
     return jsonify({ 'id': d.id })
 
+@directories.route("/<int:id>/rename/", methods=["POST"])
+@auth.login_required
+def rename_directory(id):
+    if not g.current_user.admin:
+        return unauthorized()
+
+    name = request.json.get("name")
+
+    if not name:
+        return bad_request("No valid name given")
+
+    d = Directory.get_by_id(id)
+
+    if not d:
+        return not_found("Directory is not found")
+
+    try:
+        d.rename(name)
+    except IOException as e:
+        return jsonify(e.json())
+
+    return success("Directory id {dir} renamed to {name}".format(
+        dir=d.id,
+        name=d.name
+    ))
 
 
 @directories.route("/create/", methods=["POST"])

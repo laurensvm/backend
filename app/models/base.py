@@ -23,6 +23,9 @@ class Base(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def commit(self):
+        db.session.commit()
+
 
 class Link(db.Model):
     __tablename__ = "link"

@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from .. import db
 from ..exceptions import IOException
-from ..utils import path_exists, remove, move, secure_filename, size
+from ..utils import path_exists, remove, move, secure_filename, size, rename
 from .base import Base
 from .user import User
 from .directory import Directory
@@ -27,6 +27,7 @@ class File(Base):
     type = db.Column(db.Enum(Type), default=Type.default)
     size = db.Column(db.BigInteger, nullable=True)
     name = db.Column(db.String(256), index=True)
+    path = db.Column(db.String(512), index=True)
     extension = db.Column(db.String(16))
     description = db.Column(db.String(4096), nullable=True)
     directory = db.relationship(Directory, back_populates="files")
@@ -46,14 +47,14 @@ class File(Base):
     def internal_path(self):
         return join(self.directory.internal_path, ".".join([self.name, self.extension]))
 
-    @property
-    def path(self):
-        return join(self.directory.path, ".".join([self.name, self.extension]))
+    def generate_path(self, name, extension):
+        return join(self.directory.path, ".".join([name, extension]))
 
 
     def __init__(self, **kwargs):
         self.name, self.extension = self.parse_name(kwargs.pop("name"))
         super(File, self).__init__(**kwargs)
+        self.path = self.generate_path(self.name, self.extension)
 
 
     def parse_name(self, name_extension):
@@ -76,16 +77,35 @@ class File(Base):
 
         super(File, self).remove()
 
+    def rename(self, name):
+        old_path = self.internal_path
+
+        name = secure_filename(name)
+        new_path = self.generate_path(name, self.extension)
+
+        f = File.get_by_path(new_path)
+        if f:
+            raise IOException(IOException.Type.path_already_exists)
+
+        with db.session.no_autoflush:
+            self.name = name
+            self.path = self.generate_path(self.name, self.extension)
+
+        rename(old_path, self.internal_path)
+        self.commit()
+
 
     @staticmethod
     def get_by_path(path):
         return File.query.filter_by(path=path).first()
+
 
     def json(self):
         json = super(File, self).json()
         json.update({
             "type": self.type.value,
             "name": self.name,
+            "path": self.path,
             "extension": self.extension,
             "description": self.description,
             "size": self.size,
