@@ -45,6 +45,9 @@
     + returns: `{ 'users' : [ User ] }`
   + `/directories/root/` GET
     + returns: `{ Directory }`
+  + `/directories/create/` POST
+    + json: `{ 'path'/'name': String, 'parent_id': Integer }
+    + returns: `{ 'success': String, 'message': String }
   + `/directories/id/` POST
     + json: `{ 'path': String }`
     + returns: `{ 'id': String }`
