@@ -28,9 +28,11 @@ def get_latest_videos():
 @videos.route("/latest/id/", methods=["GET"])
 def get_latest_video_ids():
     try:
-        amount = int(request.args.get("amount")) or 30
+        amount = int(request.args.get("amount"))
     except ValueError as e:
         return bad_request("Could not convert amount to integer")
+    except TypeError:
+        amount = 30
 
     videos = Video.get_latest(amount)
 

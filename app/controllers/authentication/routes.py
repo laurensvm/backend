@@ -83,10 +83,17 @@ def get_user_by_username(username):
 
 
 
-@authentication.route('/users/', methods=["GET", "POST"])
+@authentication.route('/users/', methods=["GET"])
 @auth.login_required
 def get_users():
-    users = User.query.all()
+    try:
+        amount = int(request.args.get("amount"))
+    except ValueError as e:
+        return bad_request("Could not convert amount to integer")
+    except TypeError:
+        amount = 30
+
+    users = User.query.limit(amount).all()
     return jsonify({ 'users': [ user.json() for user in users ] })
 
 
@@ -115,6 +122,18 @@ def delete_user(username):
     if g.current_user.admin:
 
         u = User.query.filter_by(username=username).first()
+        if u:
+            u.remove()
+            return success("User with username {0} is successfully deleted".format(username))
+        return bad_request("User does not exist")
+    return unauthorized()
+
+@authentication.route('/users/delete/<int:id>/', methods=["GET"])
+@auth.login_required
+def delete_user(id):
+    if g.current_user.admin:
+
+        u = User.query.filter_by(id=id).first()
         if u:
             u.remove()
             return success("User with username {0} is successfully deleted".format(username))

@@ -69,7 +69,14 @@ def get_children():
         return jsonify({ "children": [child.name for child in d.children ] })
 
     else:
-        directories = Directory.query.limit(30).all()
+        try:
+            amount = int(request.args.get("amount"))
+        except ValueError as e:
+            return bad_request("Could not convert amount to integer")
+        except TypeError:
+            amount = 30
+
+        directories = Directory.query.limit(amount).all()
         return jsonify({ "directories": [ directory.json() for directory in directories ] })
 
 
