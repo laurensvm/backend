@@ -94,7 +94,7 @@ def get_files_in_directory_with_id(id):
     return jsonify({'files': [ file.json() for file in d.files ]})
 
 
-@files.route("/delete/<int:id>/", methods=["GET"])
+@files.route("/<int:id>/delete/", methods=["GET"])
 @auth.login_required
 def delete_file(id):
     if not g.current_user.admin:

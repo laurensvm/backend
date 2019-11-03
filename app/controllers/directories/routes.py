@@ -145,8 +145,8 @@ def create_directory():
         return bad_request("Directory with path does not exist")
 
     if parent.has_child_with_name(name):
-        return bad_request("Directory with path {0} and name {1} already exists"
-                           .format(path, name))
+        return bad_request("Directory with path '{0}' and name '{1}' already exists"
+                           .format(parent.path, name))
     # Create directory
     d = Directory(
         parent_id=parent.id,
@@ -173,14 +173,35 @@ def get_directory_rights():
 @directories.route('/delete/', methods=["POST"])
 @auth.login_required
 def delete_directory():
-    if g.current_user.admin:
+    if not g.current_user.admin:
         return unauthorized()
 
     path = request.json.get("path")
 
     d = Directory.get_by_path(path)
     if not d:
-        return bad_request("Directory does not exist")
+        return not_found("Directory could not be found")
 
-    d.remove()
+    try:
+        d.remove()
+    except IOException as e:
+        return jsonify(e.json())
+
     return success("Directory with path: {0} successfully deleted".format(path))
+
+@directories.route("/<int:id>/delete/", methods=["GET"])
+@auth.login_required
+def delete_directory_by_id(id):
+    if not g.current_user.admin:
+        return unauthorized()
+
+    d = Directory.get_by_id(id)
+    if not d:
+        return not_found("Directory could not be found")
+
+    try:
+        d.remove()
+    except IOException as e:
+        return jsonify(e.json())
+
+    return success("Directory with id: {0} successfully deleted".format(id))

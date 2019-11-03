@@ -14,7 +14,8 @@ class Config(object):
     BASEDIR = basedir
     SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(os.path.join(BASEDIR, "app.db"))
     BASEPATH = os.environ.get('BASEPATH') or os.path.join(basedir, "data")
-    THUMBNAIL_FOLDER = "thumbnails"
+    THUMBNAIL_FOLDER = os.environ.get("THUMBNAIL_FOLDER") or "thumbnails"
+    ROOT_FOLDER = os.environ.get("ROOT_FOLDER") or "root"
     THUMBNAIL_IMAGE_QUALITY = (120, 120)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     LOG_TO_STDOUT = os.environ.get('LOG_TO_STDOUT')

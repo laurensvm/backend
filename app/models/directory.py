@@ -1,8 +1,8 @@
 from flask import current_app
 
 from .. import db
+from . import *
 from .base import Base
-from .user import User
 from ..utils import remove_dir, join, secure_filename, makedir, rename
 from ..exceptions import IOException
 
@@ -21,6 +21,10 @@ class Directory(Base):
         super(Directory, self).__init__(**kwargs)
         self.path = Directory.generate_path(self.parent_id, self.name)
         self.internal_path = Directory.generate_internal_path(self.path)
+
+        if self.parent and self.size != 0:
+            self.parent.update_size(self.size)
+
         makedir(self.internal_path)
 
 
@@ -55,6 +59,10 @@ class Directory(Base):
         else:
             self.size -= size
 
+        # Recursively move up the directory tree to update the size
+        if self.parent:
+            self.parent.update_size(self.size, increment=increment)
+
     def rename(self, name):
         old_path = self.internal_path
 
@@ -78,6 +86,9 @@ class Directory(Base):
         for user in self.users_with_rights:
             user.directory_rights.remove(self)
 
+        if self.parent:
+            self.parent.update_size(self.size, increment=False)
+
         # Recursively removes all children
         # and corresponding user rights
         for child in self.children:
@@ -87,7 +98,10 @@ class Directory(Base):
         for file in self.files:
             file.remove()
 
-        remove_dir(self.path)
+        try:
+            remove_dir(self.internal_path)
+        except FileNotFoundError:
+            raise IOException(IOException.Type.file_not_found)
 
         super(Directory, self).remove()
 
@@ -104,7 +118,8 @@ class Directory(Base):
 
     @staticmethod
     def create_root():
-        d = Directory(parent_id=None, name="root", path="root")
+        root = current_app.config["ROOT_FOLDER"]
+        d = Directory(parent_id=None, name=root, path=root)
 
         admins = User.query.filter_by(admin=True)
         d.users_with_rights.extend(admins)
@@ -116,6 +131,10 @@ class Directory(Base):
         if isinstance(parent, int):
             parent = Directory.query.filter_by(id=parent).first()
 
+        if name == current_app.config["ROOT_FOLDER"]\
+                or name == current_app.config["THUMBNAIL_FOLDER"]:
+            return secure_filename(name)
+
         return join(parent.path, secure_filename(name))
 
     @staticmethod
@@ -125,8 +144,7 @@ class Directory(Base):
     @staticmethod
     def create_thumbnails():
         name = current_app.config["THUMBNAIL_FOLDER"]
-        root = Directory.query.filter_by(name="root").first()
-        d = Directory(parent_id=root.id, name=name, path=Directory.generate_path(root, name))
+        d = Directory(parent_id=None, name=name, path=name)
 
         admins = User.query.filter_by(admin=True)
         d.users_with_rights.extend(admins)
@@ -150,3 +168,8 @@ class Directory(Base):
         if d:
             return d.parent
         return None
+
+    @staticmethod
+    def add_user_to_thumbnails(user):
+        d = Directory.get_by_name(current_app.config["THUMBNAIL_FOLDER"]).first()
+        d.users_with_rights.add(user)

@@ -22,3 +22,4 @@ class IOException(IOError):
         path_does_not_exist = "Path does not exist"
         path_already_exists = "Cannot save file. The file path already exists"
         insufficient_rights = "User has insufficient rights to perform IO operations in this directory"
+        file_not_found = "No such file or directory"
