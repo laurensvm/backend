@@ -62,11 +62,49 @@ class TestDirectories(TestBase):
         assert data.get("name") == name
 
     def test_get_directory_rights(self):
-        pass
+        id = 1
+        response = self.app.get("/directories/{0}/rights/".format(id), headers=self.get_header())
+        data = self.parse_json(response.data)
+
+        # Runs before rename
+        expected_dir_rights = [self.app.application.config["ROOT_FOLDER"],
+                               self.app.application.config["THUMBNAIL_FOLDER"]]
+
+        assert data.get("users")[0].get("directory_rights") == expected_dir_rights
 
     def test_delete_directory(self):
-        pass
+        id = 1
+        dirname = "test_directory"
 
+        # Create a new directory
+        self.app.post("/directories/create/",
+                      headers=self.get_header(),
+                      content_type="application/json",
+                      data=json.dumps(dict(parent_id=id, name=dirname))
+                      )
+
+        path = "{0}/{1}".format(self.app.application.config["ROOT_FOLDER"], dirname)
+
+        # Get the new directories id
+        response = self.app.post("/directories/id/",
+                                 headers=self.get_header(),
+                                 content_type="application/json",
+                                 data=json.dumps(dict(path=path))
+                                 )
+
+        id = self.parse_json(response.data).get("id")
+
+        self.app.get("/directories/{0}/delete/".format(id), headers=self.get_header())
+
+        # Get the directories id, should return 'not found'
+        response = self.app.post("/directories/id/",
+                                 headers=self.get_header(),
+                                 content_type="application/json",
+                                 data=json.dumps(dict(path=path))
+                                 )
+
+        data = self.parse_json(response.data)
+        assert data.get("error") == "not found"
 
 if __name__ == '__main__':
     unittest.main()

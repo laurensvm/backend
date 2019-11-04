@@ -85,8 +85,7 @@ class Directory(Base):
         self.commit()
 
     def remove(self):
-        for user in self.users_with_rights:
-            user.directory_rights.remove(self)
+        self.users_with_rights = []
 
         if self.parent:
             self.parent.update_size(self.size, increment=False)

@@ -167,7 +167,7 @@ def get_directory_rights(id):
     if not directory:
         return not_found("Directory with id {0} is not found".format(id))
 
-    return jsonify({'users': [ user for user in directory.users_with_rights ]})
+    return jsonify({'users': [ user.json() for user in directory.users_with_rights ]})
 
 
 @directories.route('/delete/', methods=["POST"])

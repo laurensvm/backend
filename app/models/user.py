@@ -81,8 +81,7 @@ class User(UserMixin, Base):
         u.save()
 
     def remove(self):
-        for directory in self.directory_rights:
-            directory.users_with_rights.remove(self)
+        self.directory_rights = []
         super(User, self).remove()
 
     def __repr__(self):
