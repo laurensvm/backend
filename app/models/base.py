@@ -8,6 +8,9 @@ class Base(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    def __init__(self, **kwargs):
+        super(Base, self).__init__(**kwargs)
+
     def json(self):
         return {
             "id": self.id,

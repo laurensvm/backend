@@ -130,7 +130,7 @@ def delete_user(username):
 
 @authentication.route('/users/delete/<int:id>/', methods=["GET"])
 @auth.login_required
-def delete_user(id):
+def _delete_user(id):
     if g.current_user.admin:
 
         u = User.query.filter_by(id=id).first()

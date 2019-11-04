@@ -1,17 +1,22 @@
 import os
 import unittest
 import json
+import shutil
 
 from backend.app import create_app, db
-from backend.app.models import User
+from backend.app.models import User, Directory
 
 from base64 import b64encode
 
 class TestBase(unittest.TestCase):
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(self):
         app = create_app()
 
         app.config['TESTING'] = True
+        app.config["THUMBNAIL_FOLDER"] = "test_thumbnail"
+        app.config["ROOT_FOLDER"] = "test_root"
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.config["BASEDIR"], 'test.db')
 
         self.app = app.test_client()
@@ -20,12 +25,27 @@ class TestBase(unittest.TestCase):
 
         db.create_all()
 
-        self.create_user()
+        self.create_user(self)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(self):
         with self.ctx:
+
+            # Delete all the created directories
+            dirs = Directory.query.all()
+            for dir in dirs:
+                """
+                If this is false, the parent directory has been removed, which recursively
+                also caused the child directories to get removed.
+                Not checking for this will raise a FileNotFoundError, since shutil
+                is trying to remove a directory that does not exist
+                """
+                if dir.parent:
+                    shutil.rmtree(dir.internal_path)
+
             db.session.remove()
             db.drop_all()
+
 
     def create_user(self):
         # Create client side copy of credentials

@@ -37,9 +37,11 @@ def get_files_in_directory(id):
     d = Directory.get_by_id(id)
 
     try:
-        amount = int(request.args.get("amount")) or 30
+        amount = int(request.args.get("amount"))
     except ValueError as e:
         return bad_request("Amount cannot be converted to integer")
+    except TypeError:
+        amount = 30
 
     if not d:
         return not_found("Directory is not found")
@@ -75,8 +77,7 @@ def get_children():
 def get_root():
     if not g.current_user.admin:
         return unauthorized()
-
-    root = Directory.query.filter_by(name="root").first()
+    root = Directory.get_root_directory()
     return jsonify(root.json())
 
 
@@ -128,11 +129,10 @@ def create_directory():
     if not g.current_user.admin:
         return unauthorized()
 
-
     name = request.json.get("name")
-
     path = request.json.get("path")
     parent_id = request.json.get("parent_id")
+
     if path:
         parent = Directory.get_parent(path)
     elif parent_id:

@@ -27,6 +27,8 @@ class Directory(Base):
 
         makedir(self.internal_path)
 
+        db.session.flush()
+
 
     def __repr__(self):
         return 'Directory {0}'.format(self.id)
@@ -129,7 +131,10 @@ class Directory(Base):
     def generate_path(parent, name):
 
         if isinstance(parent, int):
-            parent = Directory.query.filter_by(id=parent).first()
+            parent = Directory.get_by_id(parent)
+
+        if not parent:
+            return secure_filename(name)
 
         if name == current_app.config["ROOT_FOLDER"]\
                 or name == current_app.config["THUMBNAIL_FOLDER"]:
@@ -153,6 +158,10 @@ class Directory(Base):
     @staticmethod
     def get_thumbnail_directory():
         return Directory.query.filter_by(name=current_app.config["THUMBNAIL_FOLDER"]).first()
+
+    @staticmethod
+    def get_root_directory():
+        return Directory.query.filter_by(name=current_app.config["ROOT_FOLDER"]).first()
 
     @staticmethod
     def get_by_path(path):
