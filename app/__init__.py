@@ -2,8 +2,13 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
-# from config import Config
-from ..config import Config
+
+try:
+    # Somehow this does not work for certain tests and flask db commands
+    from config import Config
+except ModuleNotFoundError as e:
+    print("Caught 'ModuleNotFoundError: {0}'".format(e))
+    from ..config import Config
 
 
 db = SQLAlchemy()

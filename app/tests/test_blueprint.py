@@ -40,7 +40,7 @@ class TestBase(unittest.TestCase):
                 Not checking for this will raise a FileNotFoundError, since shutil
                 is trying to remove a directory that does not exist
                 """
-                if dir.parent:
+                if os.path.isdir(dir.internal_path):
                     shutil.rmtree(dir.internal_path)
 
             db.session.remove()
