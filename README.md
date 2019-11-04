@@ -35,6 +35,7 @@
   + `/directories/<int:id>/` GET
     + returns: `{ Directory }`
   + `/directories/<int:id/files/` GET
+    + args: `?amount=30`
     + returns: `{ 'files': [File] }`
   + `/directories/<int:id>/rename/` POST
     + json: `{ 'name': String }`
@@ -46,8 +47,8 @@
   + `/directories/root/` GET
     + returns: `{ Directory }`
   + `/directories/create/` POST
-    + json: `{ 'path'/'name': String, 'parent_id': Integer }
-    + returns: `{ 'success': String, 'message': String }
+    + json: `{ 'path'/'name': String, 'parent_id': Integer }`
+    + returns: `{ 'success': String, 'message': String }`
   + `/directories/id/` POST
     + json: `{ 'path': String }`
     + returns: `{ 'id': String }`
