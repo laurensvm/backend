@@ -136,7 +136,7 @@ def _delete_user(id):
         u = User.query.filter_by(id=id).first()
         if u:
             u.remove()
-            return success("User with username {0} is successfully deleted".format(username))
+            return success("User with id {0} is successfully deleted".format(id))
         return bad_request("User does not exist")
     return unauthorized()
 

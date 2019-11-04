@@ -12,9 +12,11 @@ from ...exceptions import IOException
 @auth.login_required
 def get_latest_images():
     try:
-        amount = int(request.args.get("amount")) or 30
-    except ValueError as e:
+        amount = int(request.args.get("amount"))
+    except ValueError:
         return bad_request("Could not convert amount to integer")
+    except TypeError:
+        amount = 30
 
     images = Image.get_latest(amount)
 
@@ -25,11 +27,14 @@ def get_latest_images():
     return jsonify({'images': [image.json() for image in images]})
 
 @images.route("/id/", methods=["GET"])
+@auth.login_required
 def get_latest_video_ids():
     try:
         amount = int(request.args.get("amount")) or 30
     except ValueError as e:
         return bad_request("Could not convert amount to integer")
+    except TypeError:
+        amount = 30
 
     images = Image.get_latest(amount)
 
