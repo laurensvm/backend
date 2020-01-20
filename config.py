@@ -11,13 +11,13 @@ class Config(object):
     #     host=os.environ["DB_HOST"],
     #     db=os.environ["DB_DATABASE"]
     # )
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     BASEDIR = basedir
     SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(os.path.join(BASEDIR, "app.db"))
-    BASEPATH = os.environ.get('BASEPATH') or os.path.join(basedir, "data")
+    BASEPATH = os.environ.get('BASEPATH') or os.path.join(os.path.dirname(basedir), "managed")
     THUMBNAIL_FOLDER = os.environ.get("THUMBNAIL_FOLDER") or "thumbnails"
     ROOT_FOLDER = os.environ.get("ROOT_FOLDER") or "root"
-    THUMBNAIL_IMAGE_QUALITY = (120, 120)
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    THUMBNAIL_IMAGE_QUALITY = (360, 360)
     LOG_TO_STDOUT = os.environ.get('LOG_TO_STDOUT')
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25)

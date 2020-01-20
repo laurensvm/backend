@@ -40,8 +40,8 @@ class Directory(Base):
         json = super(Directory, self).json()
         json.update({
             "parent_id": self.parent_id,
-            "children": [ child.name for child in self.children ],
-            "files": [ file.name for file in self.files ],
+            "children": [ child.id for child in self.children ],
+            "files": [ file.id for file in self.files ],
             "name": self.name,
             "path": self.path,
             "size": self.size,

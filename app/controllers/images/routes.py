@@ -110,6 +110,7 @@ def upload_file():
     try:
         im.save(file)
     except IOException as e:
+        print("ERROR", e.json())
         return jsonify(e.json())
 
     return success("Image successfully uploaded.")

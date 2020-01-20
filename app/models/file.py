@@ -110,7 +110,9 @@ class File(Base):
             "description": self.description,
             "size": self.size,
             "directory": self.directory.path,
-            "user": self.user.username
+            "directory_id": self.directory_id,
+            "user": self.user.username,
+            "user_id": self.user_id,
         })
         return json
 

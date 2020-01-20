@@ -52,10 +52,10 @@ def before_request():
 @auth.login_required
 def get_token():
     expiration = int(current_app.config["TOKEN_EXPIRATION"]) or 3600
-
     if g.current_user.is_anonymous or g.token_used:
         return unauthorized('Invalid credentials')
     return jsonify({
+        # 'user': g.current_user.json(),
         'token': g.current_user.generate_auth_token(expiration=expiration),
         'expiration': expiration
         })
@@ -71,16 +71,15 @@ def get_user_by_id(id):
     return jsonify(user.json())
 
 
-@authentication.route('/users/<string:username>/', methods=["GET"])
+@authentication.route('/users/<string:email>/', methods=["GET"])
 @auth.login_required
-def get_user_by_username(username):
-    user = User.query.filter_by(username=username).first()
+def get_user_by_email(email):
+    user = User.query.filter_by(email=email).first()
 
     if not user:
         return not_found("User not found")
 
     return jsonify(user.json())
-
 
 
 @authentication.route('/users/', methods=["GET"])

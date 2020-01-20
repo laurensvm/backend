@@ -31,9 +31,9 @@ def get_directory_by_id(id):
 
     return jsonify(d.json())
 
-@directories.route("/<int:id>/files/", methods=["GET"])
+@directories.route("/children/<int:id>/", methods=["GET"])
 @auth.login_required
-def get_files_in_directory(id):
+def get_children_in_directory(id):
     d = Directory.get_by_id(id)
 
     try:
@@ -49,9 +49,16 @@ def get_files_in_directory(id):
     if not g.current_user in d.users_with_rights:
         return unauthorized()
 
-    return jsonify({'files': [file.json() for file in d.files[:amount] ]})
+    # Get the files and directories
+    children = d.files[:min(len(d.files), amount)] + \
+               d.children[:min(len(d.children), amount)]
+
+    children.sort(key=lambda x: x.name)
+
+    return jsonify({'children': [c.json() for c in children]})
 
 
+# Do we need this?
 @directories.route("/", methods=["GET"])
 @auth.login_required
 def get_children():
