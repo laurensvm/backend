@@ -106,6 +106,14 @@ class Directory(Base):
 
         super(Directory, self).remove()
 
+    def add_user_with_rights(self, u):
+        if not u in self.users_with_rights:
+            self.users_with_rights.append(u)
+
+        if not self in u.directory_rights:
+            u.directory_rights.append(self)
+
+        self.commit()
 
     @staticmethod
     def exists(path):

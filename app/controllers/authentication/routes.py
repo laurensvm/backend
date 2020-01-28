@@ -3,7 +3,7 @@ from flask import jsonify, g, request, current_app
 
 from . import authentication
 from ..statuscodes import unauthorized, _unauthorized, success, bad_request, not_found
-from ...models import User
+from ...models import User, Directory
 
 
 auth = HTTPBasicAuth()
@@ -138,6 +138,33 @@ def _delete_user(id):
             return success("User with id {0} is successfully deleted".format(id))
         return bad_request("User does not exist")
     return unauthorized()
+
+@authentication.route('/users/rights/add/', methods=["POST"])
+@auth.login_required
+def add_rights():
+    if not g.current_user.admin:
+        return unauthorized()
+
+    username = request.json.get("username")
+    email = request.json.get("email")
+    directory_id = request.json.get("directory_id")
+
+    if username:
+        u = User.get_by_username(username)
+    elif email:
+        u = User.get_by_email(email)
+
+    d = Directory.get_by_id(directory_id)
+
+    if not d:
+        return not_found("Directory does not exist")
+
+    if not u:
+        return not_found("User not found")
+
+    d.add_user_with_rights(u)
+
+    return success("{0} is added to directory {1}".format(u, d.name))
 
 # @authentication.route('/users/update/<int:id>/', methods=["POST"])
 # @auth.login_required
